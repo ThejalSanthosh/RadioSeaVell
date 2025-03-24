@@ -1,0 +1,41 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "radioseawell-95bbe",
+          "appId": "1:672776868003:android:605e1f7bd3e92d9a3a2f16",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "radioseawell-95bbe",
+          "configurations": {
+            "android": "1:672776868003:android:605e1f7bd3e92d9a3a2f16",
+            "ios": "1:672776868003:ios:667ede18154b00783a2f16",
+            "web": "1:672776868003:web:58ab09638d0afc503a2f16"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

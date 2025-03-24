@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "672776868003",
+    "project_id": "radioseawell-95bbe",
+    "storage_bucket": "radioseawell-95bbe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672776868003:android:605e1f7bd3e92d9a3a2f16",
+        "android_client_info": {
+          "package_name": "com.example.radio_sea_well"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmba_vDxh92aHiWZAPSQhgqNeWQIOi_X8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
