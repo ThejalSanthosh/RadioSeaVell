@@ -1,7 +1,7 @@
 class Product {
   final String id;
   final int quantity;
-  final double price;
+  final dynamic price;
   final DateTime dateAdded;
   final String type;
   final String? vehicleId; // Non-nullable
@@ -30,7 +30,7 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) => Product(
     id: json['id'] ?? '',
     quantity: (json['quantity'] ?? 0).toInt(),
-    price: (json['price'] ?? 0).toDouble(),
+      price: json['price'], 
     dateAdded: DateTime.parse(
       json['dateAdded'] ?? DateTime.now().toIso8601String(),
     ),

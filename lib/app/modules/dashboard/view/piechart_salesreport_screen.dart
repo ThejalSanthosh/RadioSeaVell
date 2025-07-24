@@ -1,6 +1,6 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:radio_sea_well/app/modules/dashboard/controller/dashboard_controller.dart';
 
 class SalesReportScreen extends StatelessWidget {

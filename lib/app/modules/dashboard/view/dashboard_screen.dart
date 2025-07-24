@@ -230,22 +230,24 @@ class DashboardView extends GetView<DashboardController> {
             onTap: () => Get.toNamed('/transactions'),
           ),
           StatsCard(
-  title: 'Updated Logs',
-  value: controller.totalErrors.value.toString(),
-  icon: Icons.error_outline,
-  gradient: const LinearGradient(
-    colors: [Color(0xFF27AE60), Color(0xFF2ECC71)],
-  ),
-  onTap: () => Get.toNamed('/logTracking'),
-),  StatsCard(
-                    title: 'Expenses Amount',
-                    value: '₹${controller.vehicleExpensesAmount.value.toStringAsFixed(2)}',
-                    icon: Icons.attach_money,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFF39C12), Color(0xFFD35400)],
-                    ),
-                    onTap: () => Get.toNamed('/vehicleExpenses'),
-                  ),
+            title: 'Updated Logs',
+            value: controller.totalErrors.value.toString(),
+            icon: Icons.error_outline,
+            gradient: const LinearGradient(
+              colors: [Color(0xFF27AE60), Color(0xFF2ECC71)],
+            ),
+            onTap: () => Get.toNamed('/logTracking'),
+          ),
+          StatsCard(
+            title: 'Expenses Amount',
+            value:
+                '₹${controller.vehicleExpensesAmount.value.toStringAsFixed(2)}',
+            icon: Icons.attach_money,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFF39C12), Color(0xFFD35400)],
+            ),
+            onTap: () => Get.toNamed('/vehicleExpenses'),
+          ),
 
           //       StatsCard(
           //   title: 'Total Sales',
@@ -360,10 +362,109 @@ class DashboardView extends GetView<DashboardController> {
     );
   }
 
+  // void showAddProductDialog(BuildContext context) {
+  //   final quantityController = TextEditingController();
+  //   final selectedPrice = 42.obs;
+  //   final prices = [42, 84, 125, 170, 300];
+
+  //   showDialog(
+  //     context: context,
+  //     builder:
+  //         (context) => AlertDialog(
+  //           title: const Text('Add New Product'),
+  //           shape: RoundedRectangleBorder(
+  //             borderRadius: BorderRadius.circular(12),
+  //           ),
+  //           content: Container(
+  //             width: 400,
+  //             padding: const EdgeInsets.all(16),
+  //             child: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 Container(
+  //                   padding: const EdgeInsets.symmetric(vertical: 8),
+  //                   child: DropdownButtonFormField<int>(
+  //                     decoration: InputDecoration(
+  //                       labelText: 'Select Price',
+  //                       labelStyle: TextStyle(color: Colors.grey[600]),
+  //                       prefixIcon: Icon(
+  //                         Icons.currency_rupee,
+  //                         color: Colors.grey[600],
+  //                       ),
+  //                       border: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(8),
+  //                         borderSide: BorderSide(color: Colors.grey[300]!),
+  //                       ),
+  //                       enabledBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(8),
+  //                         borderSide: BorderSide(color: Colors.grey[300]!),
+  //                       ),
+  //                       focusedBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(8),
+  //                         borderSide: BorderSide(color: primaryColor),
+  //                       ),
+  //                       filled: true,
+  //                       fillColor: Colors.grey[50],
+  //                     ),
+  //                     value: selectedPrice.value,
+  //                     items:
+  //                         prices
+  //                             .map(
+  //                               (price) => DropdownMenuItem(
+  //                                 value: price,
+  //                                 child: Text('₹$price'),
+  //                               ),
+  //                             )
+  //                             .toList(),
+  //                     onChanged: (value) => selectedPrice.value = value!,
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 16),
+  //                 buildTextField(
+  //                   controller: quantityController,
+  //                   label: 'Quantity',
+  //                   icon: Icons.inventory,
+  //                   keyboardType: TextInputType.number,
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           actions: [
+  //             TextButton(
+  //               onPressed: () => Navigator.pop(context),
+  //               child: const Text('Cancel'),
+  //               style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+  //             ),
+  //             ElevatedButton(
+  //               onPressed: () {
+  //                 controller.addProduct({
+  //                   'price': selectedPrice.value,
+  //                   'quantity': int.parse(quantityController.text),
+  //                   'type': 'instock',
+  //                   'dateAdded': DateTime.now().toIso8601String(),
+  //                 });
+  //                 Navigator.pop(context);
+  //               },
+  //               style: ElevatedButton.styleFrom(
+  //                 backgroundColor: Colors.blue[600],
+  //                 padding: const EdgeInsets.symmetric(
+  //                   horizontal: 24,
+  //                   vertical: 12,
+  //                 ),
+  //                 shape: RoundedRectangleBorder(
+  //                   borderRadius: BorderRadius.circular(8),
+  //                 ),
+  //               ),
+  //               child: const Text('Save'),
+  //             ),
+  //           ],
+  //         ),
+  //   );
+  // }
+
   void showAddProductDialog(BuildContext context) {
     final quantityController = TextEditingController();
-    final selectedPrice = 5.obs;
-    final prices = [5, 10, 15, 20, 25];
+    final priceController = TextEditingController();
 
     showDialog(
       context: context,
@@ -379,43 +480,11 @@ class DashboardView extends GetView<DashboardController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: DropdownButtonFormField<int>(
-                      decoration: InputDecoration(
-                        labelText: 'Select Price',
-                        labelStyle: TextStyle(color: Colors.grey[600]),
-                        prefixIcon: Icon(
-                          Icons.currency_rupee,
-                          color: Colors.grey[600],
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: primaryColor),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                      ),
-                      value: selectedPrice.value,
-                      items:
-                          prices
-                              .map(
-                                (price) => DropdownMenuItem(
-                                  value: price,
-                                  child: Text('₹$price'),
-                                ),
-                              )
-                              .toList(),
-                      onChanged: (value) => selectedPrice.value = value!,
-                    ),
+                  buildTextField(
+                    controller: priceController,
+                    label: 'Price (e.g., 42-M)',
+                    icon: Icons.currency_rupee,
+                    keyboardType: TextInputType.text,
                   ),
                   const SizedBox(height: 16),
                   buildTextField(
@@ -435,13 +504,80 @@ class DashboardView extends GetView<DashboardController> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  controller.addProduct({
-                    'price': selectedPrice.value,
-                    'quantity': int.parse(quantityController.text),
-                    'type': 'instock',
-                    'dateAdded': DateTime.now().toIso8601String(),
-                  });
-                  Navigator.pop(context);
+                  // Validate inputs before saving
+                  if (priceController.text.isEmpty ||
+                      quantityController.text.isEmpty) {
+                    Get.snackbar(
+                      'Error',
+                      'Please fill in all fields',
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                      snackPosition: SnackPosition.TOP,
+                    );
+                    return;
+                  }
+
+                  try {
+                    final priceInput = priceController.text.trim();
+                    final quantity = int.parse(quantityController.text);
+
+                    // Validate price format (should contain a dash)
+                    // if (!priceInput.contains('-')) {
+                    //   Get.snackbar(
+                    //     'Error',
+                    //     'Price format should be like "42-M"',
+                    //     backgroundColor: Colors.red,
+                    //     colorText: Colors.white,
+                    //     snackPosition: SnackPosition.TOP,
+                    //   );
+                    //   return;
+                    // }
+
+                    // Extract numeric part for validation
+                    final priceParts = priceInput.split('-');
+                    // if (priceParts.length != 2 ||
+                    //     priceParts[0].isEmpty ||
+                    //     priceParts[1].isEmpty) {
+                    //   Get.snackbar(
+                    //     'Error',
+                    //     'Price format should be like "42-M"',
+                    //     backgroundColor: Colors.red,
+                    //     colorText: Colors.white,
+                    //     snackPosition: SnackPosition.TOP,
+                    //   );
+                    //   return;
+                    // }
+
+                    final numericPrice = double.parse(priceParts[0]);
+
+                    if (numericPrice <= 0 || quantity <= 0) {
+                      Get.snackbar(
+                        'Error',
+                        'Price and quantity must be greater than 0',
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                        snackPosition: SnackPosition.TOP,
+                      );
+                      return;
+                    }
+
+                    controller.addProduct({
+                      'price':
+                          priceInput, // Store the full price string (e.g., "42-M")
+                      'quantity': quantity,
+                      'type': 'instock',
+                      'dateAdded': DateTime.now().toIso8601String(),
+                    });
+                    Navigator.pop(context);
+                  } catch (e) {
+                    Get.snackbar(
+                      'Error',
+                      'Please enter valid price format (e.g., 42-M) and quantity',
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                      snackPosition: SnackPosition.TOP,
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[600],
@@ -466,6 +602,7 @@ class DashboardView extends GetView<DashboardController> {
     final phoneController = TextEditingController();
     final emailController = TextEditingController();
     final districtController = TextEditingController();
+    final creditBalanceController = TextEditingController();
 
     showDialog(
       context: context,
@@ -503,7 +640,7 @@ class DashboardView extends GetView<DashboardController> {
                   const SizedBox(height: 16),
                   buildTextField(
                     controller: districtController,
-                    label: 'District',
+                    label: 'Line',
                     icon: Icons.location_city,
                   ),
                   const SizedBox(height: 16),
@@ -512,6 +649,16 @@ class DashboardView extends GetView<DashboardController> {
                     label: 'Email',
                     icon: Icons.email,
                     keyboardType: TextInputType.emailAddress,
+                  ),
+
+                  const SizedBox(height: 16),
+                  buildTextField(
+                    controller: creditBalanceController,
+                    label: 'Credit Balance (Optional)',
+                    icon: Icons.account_balance_wallet,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ],
               ),
@@ -531,6 +678,7 @@ class DashboardView extends GetView<DashboardController> {
                       districtController,
                       phoneController,
                       emailController,
+                      creditBalanceController,
                     ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[600],
@@ -582,6 +730,40 @@ class DashboardView extends GetView<DashboardController> {
     );
   }
 
+  // void handleStoreSave(
+  //   BuildContext context,
+  //   TextEditingController nameController,
+  //   TextEditingController addressController,
+  //   TextEditingController districtController,
+  //   TextEditingController phoneController,
+  //   TextEditingController emailController,
+  // ) {
+  //   if (nameController.text.isEmpty ||
+  //       phoneController.text.isEmpty ||
+  //       addressController.text.isEmpty ||
+  //       districtController.text.isEmpty) {
+  //     Get.snackbar(
+  //       'Error',
+  //       'Please fill in all required fields.',
+  //       backgroundColor: Colors.red[400],
+  //       colorText: Colors.white,
+  //       snackPosition: SnackPosition.TOP,
+  //       margin: const EdgeInsets.all(16),
+  //     );
+  //     return;
+  //   }
+
+  //   controller.addStore({
+  //     'name': nameController.text,
+  //     'address': addressController.text,
+  //     'district': districtController.text,
+  //     'phone': phoneController.text,
+  //     'email': emailController.text,
+  //     'created_at': DateTime.now(),
+  //   });
+  //   Navigator.pop(context);
+  // }
+
   void handleStoreSave(
     BuildContext context,
     TextEditingController nameController,
@@ -589,6 +771,7 @@ class DashboardView extends GetView<DashboardController> {
     TextEditingController districtController,
     TextEditingController phoneController,
     TextEditingController emailController,
+    TextEditingController creditBalanceController,
   ) {
     if (nameController.text.isEmpty ||
         phoneController.text.isEmpty ||
@@ -605,14 +788,22 @@ class DashboardView extends GetView<DashboardController> {
       return;
     }
 
+    // Parse credit balance, default to 0.0 if empty or invalid
+    double creditBalance = 0.0;
+    if (creditBalanceController.text.isNotEmpty) {
+      creditBalance = double.tryParse(creditBalanceController.text) ?? 0.0;
+    }
+
     controller.addStore({
       'name': nameController.text,
       'address': addressController.text,
       'district': districtController.text,
       'phone': phoneController.text,
       'email': emailController.text,
-      'created_at': DateTime.now(),
+      'balanceAmount': creditBalance,
+      'UpdatedAt': DateTime.now(),
     });
+
     Navigator.pop(context);
   }
 }

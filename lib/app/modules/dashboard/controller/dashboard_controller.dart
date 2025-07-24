@@ -145,29 +145,29 @@ void calculateProductStats(List<Product> products) {
     });
   }
 
-void loadStoreTransactions() {
-  if (selectedStore.value == null || selectedStore.value!.isEmpty) return;
+// void loadStoreTransactions() {
+//   if (selectedStore.value == null || selectedStore.value!.isEmpty) return;
 
-  print("Selected store: ${selectedStore.value}"); // Add logging
+//   print("Selected store: ${selectedStore.value}"); // Add logging
 
-  firebaseService.getStoreTransactions(selectedStore.value!).listen(
-    (QuerySnapshot snapshot) {
-      print("Received ${snapshot.docs.length} documents"); // Add logging
+//   firebaseService.getStoreTransactions(selectedStore.value!).listen(
+//     (QuerySnapshot snapshot) {
+//       print("Received ${snapshot.docs.length} documents"); // Add logging
       
-      storeTransactions.value = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        print("Document data: $data"); // Add logging
+//       storeTransactions.value = snapshot.docs.map((doc) {
+//         final data = doc.data() as Map<String, dynamic>;
+//         print("Document data: $data"); // Add logging
         
-        return TransactionModel.fromJson({
-          ...data,
-          'id': doc.id,
-        });
-      }).toList();
+//         return TransactionModel.fromJson({
+//           ...data,
+//           'id': doc.id,
+//         });
+//       }).toList();
       
-      print("Processed ${storeTransactions.value.length} transactions"); // Add logging
-    },
-  );
-}
+//       print("Processed ${storeTransactions.value.length} transactions"); // Add logging
+//     },
+//   );
+// }
 
 
 // Future<void> updateTransaction(String id, Map<String, dynamic> updatedData) async {
@@ -175,66 +175,66 @@ void loadStoreTransactions() {
 //   loadStoreTransactions();
 // }
   
-Future<void> updateTransaction(String id, Map<String, dynamic> updatedData) async {
-  try {
-    // Get the original transaction data before updating
-    DocumentSnapshot originalDoc = await     FirebaseFirestore.instance
-.collection('transactions').doc(id).get();
-    Map<String, dynamic> originalData = originalDoc.data() as Map<String, dynamic>;
+// Future<void> updateTransaction(String id, Map<String, dynamic> updatedData) async {
+//   try {
+//     // Get the original transaction data before updating
+//     DocumentSnapshot originalDoc = await     FirebaseFirestore.instance
+// .collection('transactions').doc(id).get();
+//     Map<String, dynamic> originalData = originalDoc.data() as Map<String, dynamic>;
     
-    // Extract the reason and remove it from the data to be updated
-    String reason = updatedData['reason'] ?? 'No reason provided';
-    updatedData.remove('reason');
+//     // Extract the reason and remove it from the data to be updated
+//     String reason = updatedData['reason'] ?? 'No reason provided';
+//     updatedData.remove('reason');
     
-    // Create update history record
-    Map<String, dynamic> historyRecord = {
-      'transactionId': id,
-      'originalData': originalData,
-      'updatedData': updatedData,
-      'updatedBy':  'Admin',
-      'updatedAt': FieldValue.serverTimestamp(),
-      'storeName': originalData['storeName'] ?? '',
-      'reason': reason,
-    };
+//     // Create update history record
+//     Map<String, dynamic> historyRecord = {
+//       'transactionId': id,
+//       'originalData': originalData,
+//       'updatedData': updatedData,
+//       'updatedBy':  'Admin',
+//       'updatedAt': FieldValue.serverTimestamp(),
+//       'storeName': originalData['storeName'] ?? '',
+//       'reason': reason,
+//     };
     
-    // Add to update history collection
-    await   FirebaseFirestore.instance
-.collection('transactionUpdateHistory').add(historyRecord);
+//     // Add to update history collection
+//     await   FirebaseFirestore.instance
+// .collection('transactionUpdateHistory').add(historyRecord);
     
-    // Update the original transaction
-    await     FirebaseFirestore.instance
-.collection('transactions').doc(id).update(updatedData);
+//     // Update the original transaction
+//     await     FirebaseFirestore.instance
+// .collection('transactions').doc(id).update(updatedData);
     
-    Get.snackbar(
-      'Success',
-      'Transaction updated successfully',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
-  } catch (e) {
-    print('Error updating transaction: $e');
-    Get.snackbar(
-      'Error',
-      'Failed to update transaction: $e',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-  }
-}
+//     Get.snackbar(
+//       'Success',
+//       'Transaction updated successfully',
+//       snackPosition: SnackPosition.BOTTOM,
+//       backgroundColor: Colors.green,
+//       colorText: Colors.white,
+//     );
+//   } catch (e) {
+//     print('Error updating transaction: $e');
+//     Get.snackbar(
+//       'Error',
+//       'Failed to update transaction: $e',
+//       snackPosition: SnackPosition.BOTTOM,
+//       backgroundColor: Colors.red,
+//       colorText: Colors.white,
+//     );
+//   }
+// }
 
 
-  Future<void> deleteTransaction(String id) async {
-    await firebaseService.deleteTransaction(id);
-    loadStoreTransactions();
-  }
+  // Future<void> deleteTransaction(String id) async {
+  //   await firebaseService.deleteTransaction(id);
+  //   loadStoreTransactions();
+  // }
 
   Future<void> addProduct(Map<String, dynamic> productData) async {
     try {
       final product = Product( 
         id: '',
-        price: productData['price'].toDouble(),
+      price: productData['price'],
         quantity: productData['quantity'],
         type: productData['type'],
         dateAdded: DateTime.parse(productData['dateAdded']),
@@ -266,5 +266,97 @@ Future<void> updateTransaction(String id, Map<String, dynamic> updatedData) asyn
 
   int calculateTotal(int quantity, int price) {
     return quantity * price;
+  }
+
+
+    void loadStoreTransactions() async {
+    if (selectedStore.value == null || selectedStore.value!.isEmpty) return;
+    
+    try {
+      
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('transactions')
+          .where('storeName', isEqualTo: selectedStore.value)
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      storeTransactions.value = snapshot.docs
+          .map((doc) => TransactionModel.fromFirestore(doc))
+          .toList();
+          
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to load transactions: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+    }
+  }
+
+  // Update transaction method
+ // Update transaction method with proper error handling
+void updateTransaction(String transactionId, Map<String, dynamic> updatedData) async {
+  try {
+    // Ensure UpdatedAt is properly set
+    updatedData['UpdatedAt'] = FieldValue.serverTimestamp();
+    
+    await FirebaseFirestore.instance
+        .collection('transactions')
+        .doc(transactionId)
+        .update(updatedData);
+
+    Get.snackbar(
+      'Success',
+      'Transaction updated successfully',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+    );
+
+    // Reload transactions to reflect changes
+    loadStoreTransactions();
+  } catch (e) {
+    print('Update error: $e'); // For debugging
+    Get.snackbar(
+      'Error',
+      'Failed to update transaction: $e',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  }
+}
+
+
+  // Delete transaction method
+  void deleteTransaction(String transactionId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('transactions')
+          .doc(transactionId)
+          .delete();
+
+      Get.snackbar(
+        'Success',
+        'Transaction deleted successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+      // Reload transactions to reflect changes
+      loadStoreTransactions();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to delete transaction: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 }

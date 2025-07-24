@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:radio_sea_well/app/modules/dashboard/controller/instock_controller.dart';
 
 class InstockScreen extends StatelessWidget {
@@ -66,7 +65,7 @@ class InstockScreen extends StatelessWidget {
                   controller.selectedVehicleId.value = value ?? '';
                   controller.selectedEmployeeId.value =
                       ''; // Reset employee selection
-                  controller.selectedPrice.value = 0;
+                  controller.selectedPrice.value = "0";
                   controller.maxOutstock.value = 0;
                 },
               ),
@@ -90,22 +89,27 @@ class InstockScreen extends StatelessWidget {
                         .toList(),
                 onChanged: (value) {
                   controller.selectedEmployeeId.value = value ?? '';
-                  controller.selectedPrice.value = 0;
+                  controller.selectedPrice.value = "0";
                   controller.maxOutstock.value = 0;
                 },
               ),
               SizedBox(height: 16),
 
               // Price Dropdown
-              DropdownButtonFormField<double>(
+              DropdownButtonFormField<String>(
+                // Changed from <double> to <String>
                 decoration: _getInputDecoration('Select Price'),
                 value:
-                    controller.selectedPrice.value == 0
+                    controller
+                            .selectedPrice
+                            .value
+                            .isEmpty // Changed condition
                         ? null
                         : controller.selectedPrice.value,
                 items: controller.getAvailablePrices(),
                 onChanged: (value) {
-                  controller.selectedPrice.value = value ?? 0;
+                  controller.selectedPrice.value =
+                      value ?? ''; // Changed from 0 to ''
                   controller.updateMaxOutstock(); // Now update max outstock
                 },
               ),
@@ -219,7 +223,10 @@ class InstockScreen extends StatelessWidget {
           children: [
             _buildTypeButton(controller, 'All'),
             _buildTypeButton(controller, 'Instock'),
+            _buildTypeButton(controller, 'Morning Stock'),
+
             _buildTypeButton(controller, 'Vehicle Stock'),
+
             _buildTypeButton(controller, 'Return'),
           ],
         ),
@@ -381,7 +388,7 @@ class InstockScreen extends StatelessWidget {
                                 ),
                                 DataCell(
                                   Text(
-                                    '₹${product.price.toStringAsFixed(2)}',
+                                    '₹${product.price}',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black87,
@@ -458,289 +465,3 @@ class InstockScreen extends StatelessWidget {
     }
   }
 }
-
-// class InstockScreen extends StatelessWidget {
-//   final Color backgroundColor = const Color(0xFFF5F6FA);
-//   final Color primaryColor = const Color(0xFF2C3E50);
-//   final Color cardColor = Colors.white;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final controller = Get.put(InstockController());
-
-//     return Scaffold(
-//       backgroundColor: backgroundColor,
-//       appBar: AppBar(
-//         title: const Text('Instock Details'),
-//         backgroundColor: primaryColor,
-//         elevation: 0,
-//       ),
-//       body: Column(
-//         children: [
-//           _buildTypeSelector(controller),
-//           Expanded(child: _buildDataTable(controller)),
-//         ],
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         backgroundColor: primaryColor,
-//         onPressed: () => _showReturnStockDialog(context, controller),
-//         child: const Icon(Icons.add),
-//       ),
-//     );
-//   }
-
-//   void _showReturnStockDialog(
-//     BuildContext context,
-//     InstockController controller,
-//   ) {
-//     controller.prepareForNewSelection();
-
-//     Get.dialog(
-//       AlertDialog(
-//         title: Text('Return Stock', style: TextStyle(color: Colors.white)),
-//         content: Obx(
-//           () => Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               DropdownButtonFormField<String>(
-//                 decoration: _getInputDecoration('Select Vehicle'),
-//                 value:
-//                     controller.selectedVehicleId.value.isEmpty
-//                         ? null
-//                         : controller.selectedVehicleId.value,
-//                 items:
-//                     controller.vehicles
-//                         .map(
-//                           (vehicle) => DropdownMenuItem(
-//                             value: vehicle.id,
-//                             child: Text(vehicle.plateNumber),
-//                           ),
-//                         )
-//                         .toList(),
-//                 onChanged: (value) {
-//                   controller.selectedVehicleId.value = value ?? '';
-//                   controller.selectedPrice.value = 0;
-//                   controller.maxOutstock.value = 0;
-//                 },
-//               ),
-//               SizedBox(height: 16),
-//               DropdownButtonFormField<double>(
-//                 decoration: _getInputDecoration('Select Price'),
-//                 value:
-//                     controller.selectedPrice.value == 0
-//                         ? null
-//                         : controller.selectedPrice.value,
-//                 items: controller.getAvailablePrices(),
-//                 onChanged: (value) {
-//                   controller.selectedPrice.value = value ?? 0;
-//                   controller.updateMaxOutstock(); // Now update max outstock
-//                 },
-//               ),
-//               SizedBox(height: 16),
-//               controller.isLoading.value
-//                   ? CircularProgressIndicator()
-//                   : Text(
-//                     'Available Quantity: ${controller.maxOutstock.value}',
-//                     style: TextStyle(
-//                       color: Colors.white,
-//                       fontWeight: FontWeight.bold,
-//                     ),
-//                   ),
-//               SizedBox(height: 16),
-//               TextField(
-//                 decoration: _getInputDecoration('Return Quantity'),
-//                 style: TextStyle(color: Colors.black),
-//                 keyboardType: TextInputType.number,
-//                 onChanged: (value) {
-//                   if (value.isNotEmpty) {
-//                     try {
-//                       controller.quantity.value = int.parse(value);
-//                     } catch (e) {
-//                       // Handle invalid input
-//                       controller.quantity.value = 0;
-//                     }
-//                   } else {
-//                     controller.quantity.value = 0;
-//                   }
-//                 },
-//               ),
-//             ],
-//           ),
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Get.back(),
-//             child: Text('Cancel', style: TextStyle(color: Colors.grey)),
-//           ),
-//           Obx(
-//             () => ElevatedButton(
-//               style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
-//               onPressed:
-//                   controller.quantity.value > 0 &&
-//                           controller.quantity.value <=
-//                               controller.maxOutstock.value
-//                       ? () async {
-//                         if (await controller.addReturnedStock()) {
-//                           Get.back();
-//                           Get.snackbar(
-//                             'Success',
-//                             'Stock returned successfully',
-//                             backgroundColor: Colors.green,
-//                             colorText: Colors.white,
-//                           );
-//                         }
-//                       }
-//                       : null, // Disable button if quantity is invalid
-//               child: Text(
-//                 'Return Stock',
-//                 style: TextStyle(color: Colors.white),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   InputDecoration _getInputDecoration(String label) {
-//     return InputDecoration(
-//       labelText: label,
-//       labelStyle: TextStyle(color: primaryColor),
-//       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-//       enabledBorder: OutlineInputBorder(
-//         borderRadius: BorderRadius.circular(8),
-//         borderSide: BorderSide(color: Colors.grey[300]!),
-//       ),
-//       focusedBorder: OutlineInputBorder(
-//         borderRadius: BorderRadius.circular(8),
-//         borderSide: BorderSide(color: primaryColor),
-//       ),
-//       filled: true,
-//       fillColor: Colors.grey[50],
-//     );
-//   }
-
-//   Widget _buildTypeSelector(InstockController controller) {
-//     return Padding(
-//       padding: const EdgeInsets.all(16.0),
-//       child: DropdownButtonFormField<String>(
-//         value: controller.selectedType.value,
-//         items:
-//             ['All', 'Instock', 'Vehicle Stock', 'Return']
-//                 .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-//                 .toList(),
-//         onChanged: (value) => controller.selectedType.value = value!,
-
-//         dropdownColor: Colors.grey.shade300,
-//         style: TextStyle(color: Colors.black),
-
-//         decoration: InputDecoration(
-//           labelText: 'Select Type',
-//           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-//           labelStyle: TextStyle(color: primaryColor),
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildDataTable(InstockController controller) {
-//     return Padding(
-//       padding: const EdgeInsets.all(16.0),
-//       child: Container(
-//         decoration: BoxDecoration(
-//           color: cardColor,
-//           borderRadius: BorderRadius.circular(12),
-//           boxShadow: [
-//             BoxShadow(
-//               color: Colors.grey.withOpacity(0.1),
-//               spreadRadius: 1,
-//               blurRadius: 5,
-//               offset: const Offset(0, 3),
-//             ),
-//           ],
-//         ),
-//         child: SingleChildScrollView(
-//           scrollDirection: Axis.horizontal,
-//           child: Obx(() {
-//             final displayData = controller.getFilteredData();
-//             return DataTable(
-//               columns: [
-//                 DataColumn(
-//                   label: Text('Date', style: TextStyle(color: primaryColor)),
-//                 ),
-//                 DataColumn(
-//                   label: Text('Price', style: TextStyle(color: primaryColor)),
-//                 ),
-//                 DataColumn(
-//                   label: Text(
-//                     'Quantity',
-//                     style: TextStyle(color: primaryColor),
-//                   ),
-//                 ),
-//                 DataColumn(
-//                   label: Text('Type', style: TextStyle(color: primaryColor)),
-//                 ),
-//                 DataColumn(
-//                   label: Text('Vehicle', style: TextStyle(color: primaryColor)),
-//                 ),
-//                 if (controller.selectedType.value == 'Vehicle Stock')
-//                   DataColumn(
-//                     label: Text(
-//                       'Employee',
-//                       style: TextStyle(color: primaryColor),
-//                     ),
-//                   ),
-//               ],
-//               rows:
-//                   displayData.map((item) {
-//                     return DataRow(
-//                       cells: [
-//                         DataCell(
-//                           Text(
-//                             DateFormat(
-//                               'dd/MM/yyyy HH:mm',
-//                             ).format(DateTime.parse(item.dateAdded)),
-//                             style: TextStyle(color: primaryColor),
-//                           ),
-//                         ),
-//                         DataCell(
-//                           Text(
-//                             '₹${item.price}',
-//                             style: TextStyle(color: primaryColor),
-//                           ),
-//                         ),
-//                         DataCell(
-//                           Text(
-//                             '${item.quantity}',
-//                             style: TextStyle(color: primaryColor),
-//                           ),
-//                         ),
-//                         DataCell(
-//                           Text(
-//                             item.type,
-//                             style: TextStyle(color: primaryColor),
-//                           ),
-//                         ),
-//                         DataCell(
-//                           Text(
-//                             item.vehicleId ?? '-',
-//                             style: TextStyle(color: primaryColor),
-//                           ),
-//                         ),
-//                         if (controller.selectedType.value == 'Vehicle Stock')
-//                           DataCell(
-//                             Text(
-//                               item.employeeId ?? '-',
-//                               style: TextStyle(color: primaryColor),
-//                             ),
-//                           ),
-//                       ],
-//                     );
-//                   }).toList(),
-//             );
-//           }),
-//         ),
-//       ),
-//     );
-//   }
-// }
