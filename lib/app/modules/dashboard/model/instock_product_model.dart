@@ -30,7 +30,6 @@
 //   }
 // }
 
-
 class InstockProduct {
   final String id;
   final String dateAdded;
@@ -39,7 +38,8 @@ class InstockProduct {
   final String type;
   final String vehicleId;
   final String employeeId;
-
+  final String? label;
+  final String? category;
   InstockProduct({
     required this.id,
     required this.dateAdded,
@@ -48,6 +48,8 @@ class InstockProduct {
     required this.type,
     required this.vehicleId,
     required this.employeeId,
+    required this.category,
+    required this.label,
   });
 
   factory InstockProduct.fromJson(Map<String, dynamic> json) {
@@ -59,13 +61,17 @@ class InstockProduct {
       type: json['type'] ?? '',
       vehicleId: json['vehicleId'] ?? '',
       employeeId: json['employeeId'] ?? '',
+      label: json['priceLabel'] ?? '',
+      category: json['category'] ?? '',
     );
   }
 
   // Helper method to get numeric part of price
   double get numericPrice {
     final numericPart = RegExp(r'\d+\.?\d*').firstMatch(price);
-    return numericPart != null ? double.tryParse(numericPart.group(0)!) ?? 0.0 : 0.0;
+    return numericPart != null
+        ? double.tryParse(numericPart.group(0)!) ?? 0.0
+        : 0.0;
   }
 
   // Helper method to get suffix part of price
@@ -86,6 +92,8 @@ class InstockProduct {
       'type': type,
       'vehicleId': vehicleId,
       'employeeId': employeeId,
+      'priceLabel': label, // ✅ ADD
+      'category': category, // ✅
     };
   }
 }

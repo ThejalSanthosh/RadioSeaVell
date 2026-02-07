@@ -65,7 +65,7 @@ class InstockScreen extends StatelessWidget {
                   controller.selectedVehicleId.value = value ?? '';
                   controller.selectedEmployeeId.value =
                       ''; // Reset employee selection
-                  controller.selectedPrice.value = "0";
+                  controller.selectedPrice.value = "";
                   controller.maxOutstock.value = 0;
                 },
               ),
@@ -89,7 +89,7 @@ class InstockScreen extends StatelessWidget {
                         .toList(),
                 onChanged: (value) {
                   controller.selectedEmployeeId.value = value ?? '';
-                  controller.selectedPrice.value = "0";
+                  controller.selectedPrice.value = "";
                   controller.maxOutstock.value = 0;
                 },
               ),
@@ -201,34 +201,66 @@ class InstockScreen extends StatelessWidget {
     );
   }
 
+  // Widget _buildTypeSelector(InstockController controller) {
+  //   return Container(
+  //     margin: const EdgeInsets.all(16),
+  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  //     decoration: BoxDecoration(
+  //       color: cardColor,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withOpacity(0.1),
+  //           spreadRadius: 1,
+  //           blurRadius: 3,
+  //           offset: const Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Obx(
+  //       () => Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceAround,
+  //         children: [
+  //           _buildTypeButton(controller, 'All'),
+  //           _buildTypeButton(controller, 'Instock'),
+  //           _buildTypeButton(controller, 'Morning Stock'),
+
+  //           _buildTypeButton(controller, 'Vehicle Stock'),
+
+  //           _buildTypeButton(controller, 'Return'),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
   Widget _buildTypeSelector(InstockController controller) {
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Obx(
-        () => Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildTypeButton(controller, 'All'),
-            _buildTypeButton(controller, 'Instock'),
-            _buildTypeButton(controller, 'Morning Stock'),
-
-            _buildTypeButton(controller, 'Vehicle Stock'),
-
-            _buildTypeButton(controller, 'Return'),
-          ],
+        () => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: MediaQuery.of(Get.context!).size.width,
+            ),
+            child: IntrinsicWidth(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildTypeButton(controller, 'All'),
+                  _buildTypeButton(controller, 'Instock'),
+                  _buildTypeButton(controller, 'Morning Stock'),
+                  _buildTypeButton(controller, 'Vehicle Stock'),
+                  _buildTypeButton(controller, 'Return'),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -313,15 +345,25 @@ class InstockScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                        // DataColumn(
+                        //   label: Text(
+                        //     'Price',
+                        //     style: TextStyle(
+                        //       fontWeight: FontWeight.bold,
+                        //       color: primaryColor,
+                        //     ),
+                        //   ),
+                        // ),
                         DataColumn(
                           label: Text(
-                            'Price',
+                            'Label / Price',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: primaryColor,
                             ),
                           ),
                         ),
+
                         DataColumn(
                           label: Text(
                             'Quantity',
@@ -386,15 +428,39 @@ class InstockScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                                // DataCell(
+                                //   Text(
+                                //     '₹${product.price}',
+                                //     style: TextStyle(
+                                //       fontWeight: FontWeight.bold,
+                                //       color: Colors.black87,
+                                //     ),
+                                //   ),
+                                // ),
                                 DataCell(
-                                  Text(
-                                    '₹${product.price}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        product.label ?? "-", // 5-M-42
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      Text(
+                                        '₹${product.price}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
+
                                 DataCell(
                                   Text(
                                     product.quantity.toString(),

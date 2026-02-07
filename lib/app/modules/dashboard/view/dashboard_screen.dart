@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
@@ -94,95 +95,146 @@ class DashboardView extends GetView<DashboardController> {
     );
   }
 
-  Widget buildFinancialSummary() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  // Widget buildFinancialSummary() {
+  //   return Container(
+  //     padding: const EdgeInsets.all(24),
+  //     decoration: BoxDecoration(
+  //       color: cardColor,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       children: [
+  //         Row(
+  //           children: [
+  //             _summaryItem(
+  //               icon: Icons.account_balance_wallet,
+  //               label: 'Total',
+  //               value: controller.totalAmount,
+  //               color: Colors.blue,
+  //             ),
+  //             _summaryItem(
+  //               icon: Icons.money,
+  //               label: 'Cash',
+  //               value: controller.totalCash,
+  //               color: Colors.green,
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 16),
+  //         Row(
+  //           children: [
+  //             _summaryItem(
+  //               icon: Icons.qr_code,
+  //               label: 'UPI',
+  //               value: controller.totalUpi,
+  //               color: Colors.deepPurple,
+  //             ),
+  //             _summaryItem(
+  //               icon: Icons.credit_card,
+  //               label: 'Credit',
+  //               value: controller.totalCredit,
+  //               color: Colors.red,
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+
+Widget buildFinancialSummary() {
+  return Container(
+    padding: const EdgeInsets.all(24),
+    decoration: BoxDecoration(
+      color: cardColor,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.1),
+          blurRadius: 5,
+        ),
+      ],
+    ),
+    child: Column(
+      children: [
+        Row(
+          children: [
+            _summaryItem(
+              icon: Icons.account_balance_wallet,
+              label: 'Total',
+              value: controller.totalAmount,
+              color: Colors.blue,
+            ),
+            _summaryItem(
+              icon: Icons.money,
+              label: 'Cash',
+              value: controller.totalCash,
+              color: Colors.green,
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            _summaryItem(
+              icon: Icons.qr_code,
+              label: 'UPI',
+              value: controller.totalUpi,
+              color: Colors.deepPurple,
+            ),
+            _summaryItem(
+              icon: Icons.credit_card,
+              label: 'Credit',
+              value: controller.totalCredit,
+              color: Colors.red,
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+  Widget _summaryItem({
+    required IconData icon,
+    required String label,
+    required RxDouble value,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Obx(
+        () => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.money, color: const Color(0xFF27AE60)),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Total Amount',
-                      style: TextStyle(
-                        color: primaryColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Obx(
-                  () => Text(
-                    '₹${controller.totalAmount.value.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                Icon(icon, color: color),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
                   ),
                 ),
               ],
             ),
-          ),
-          Container(height: 50, width: 1, color: Colors.grey.withOpacity(0.3)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Row(
-                    children: [
-                      Icon(Icons.credit_card, color: const Color(0xFFE74C3C)),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Total Credit',
-                        style: TextStyle(
-                          color: primaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Obx(
-                    () => Text(
-                      '₹${controller.totalCredit.value.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        color: primaryColor,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 6),
+            Text(
+              '₹${value.value.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -248,16 +300,6 @@ class DashboardView extends GetView<DashboardController> {
             ),
             onTap: () => Get.toNamed('/vehicleExpenses'),
           ),
-
-          //       StatsCard(
-          //   title: 'Total Sales',
-          //   value: '₹${controller.totalAmount.value.toStringAsFixed(2)}',
-          //   icon: Icons.attach_money,
-          //   gradient: const LinearGradient(
-          //     colors: [Color(0xFF1ABC9C), Color(0xFF16A085)],
-          //   ),
-          //   onTap: () => Get.toNamed('/salesReport'),
-          // ),
         ],
       ),
     );
@@ -362,109 +404,10 @@ class DashboardView extends GetView<DashboardController> {
     );
   }
 
-  // void showAddProductDialog(BuildContext context) {
-  //   final quantityController = TextEditingController();
-  //   final selectedPrice = 42.obs;
-  //   final prices = [42, 84, 125, 170, 300];
-
-  //   showDialog(
-  //     context: context,
-  //     builder:
-  //         (context) => AlertDialog(
-  //           title: const Text('Add New Product'),
-  //           shape: RoundedRectangleBorder(
-  //             borderRadius: BorderRadius.circular(12),
-  //           ),
-  //           content: Container(
-  //             width: 400,
-  //             padding: const EdgeInsets.all(16),
-  //             child: Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 Container(
-  //                   padding: const EdgeInsets.symmetric(vertical: 8),
-  //                   child: DropdownButtonFormField<int>(
-  //                     decoration: InputDecoration(
-  //                       labelText: 'Select Price',
-  //                       labelStyle: TextStyle(color: Colors.grey[600]),
-  //                       prefixIcon: Icon(
-  //                         Icons.currency_rupee,
-  //                         color: Colors.grey[600],
-  //                       ),
-  //                       border: OutlineInputBorder(
-  //                         borderRadius: BorderRadius.circular(8),
-  //                         borderSide: BorderSide(color: Colors.grey[300]!),
-  //                       ),
-  //                       enabledBorder: OutlineInputBorder(
-  //                         borderRadius: BorderRadius.circular(8),
-  //                         borderSide: BorderSide(color: Colors.grey[300]!),
-  //                       ),
-  //                       focusedBorder: OutlineInputBorder(
-  //                         borderRadius: BorderRadius.circular(8),
-  //                         borderSide: BorderSide(color: primaryColor),
-  //                       ),
-  //                       filled: true,
-  //                       fillColor: Colors.grey[50],
-  //                     ),
-  //                     value: selectedPrice.value,
-  //                     items:
-  //                         prices
-  //                             .map(
-  //                               (price) => DropdownMenuItem(
-  //                                 value: price,
-  //                                 child: Text('₹$price'),
-  //                               ),
-  //                             )
-  //                             .toList(),
-  //                     onChanged: (value) => selectedPrice.value = value!,
-  //                   ),
-  //                 ),
-  //                 const SizedBox(height: 16),
-  //                 buildTextField(
-  //                   controller: quantityController,
-  //                   label: 'Quantity',
-  //                   icon: Icons.inventory,
-  //                   keyboardType: TextInputType.number,
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           actions: [
-  //             TextButton(
-  //               onPressed: () => Navigator.pop(context),
-  //               child: const Text('Cancel'),
-  //               style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
-  //             ),
-  //             ElevatedButton(
-  //               onPressed: () {
-  //                 controller.addProduct({
-  //                   'price': selectedPrice.value,
-  //                   'quantity': int.parse(quantityController.text),
-  //                   'type': 'instock',
-  //                   'dateAdded': DateTime.now().toIso8601String(),
-  //                 });
-  //                 Navigator.pop(context);
-  //               },
-  //               style: ElevatedButton.styleFrom(
-  //                 backgroundColor: Colors.blue[600],
-  //                 padding: const EdgeInsets.symmetric(
-  //                   horizontal: 24,
-  //                   vertical: 12,
-  //                 ),
-  //                 shape: RoundedRectangleBorder(
-  //                   borderRadius: BorderRadius.circular(8),
-  //                 ),
-  //               ),
-  //               child: const Text('Save'),
-  //             ),
-  //           ],
-  //         ),
-  //   );
-  // }
-
   void showAddProductDialog(BuildContext context) {
     final quantityController = TextEditingController();
-    final priceController = TextEditingController();
+    // final priceController = TextEditingController();
+    Map<String, dynamic>? selectedPrice;
 
     showDialog(
       context: context,
@@ -480,12 +423,53 @@ class DashboardView extends GetView<DashboardController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  buildTextField(
-                    controller: priceController,
-                    label: 'Price (e.g., 42-M)',
-                    icon: Icons.currency_rupee,
-                    keyboardType: TextInputType.text,
+                  // buildTextField(
+                  //   controller: priceController,
+                  //   label: 'Price (e.g., 42-M)',
+                  //   icon: Icons.currency_rupee,
+                  //   keyboardType: const TextInputType.numberWithOptions(
+                  //     decimal: true,
+                  //   ),
+                  // ),
+                  StreamBuilder<QuerySnapshot>(
+                    stream:
+                        FirebaseFirestore.instance
+                            .collection('priceMaster')
+                            .where('category', isEqualTo: 'Radio')
+                            .where('isActive', isEqualTo: true)
+                            .orderBy('packSize')
+                            .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const CircularProgressIndicator();
+                      }
+
+                      final docs = snapshot.data!.docs;
+
+                      return DropdownButtonFormField<Map<String, dynamic>>(
+                        decoration: const InputDecoration(
+                          labelText: 'Select Price',
+                          border: OutlineInputBorder(),
+                        ),
+                        items:
+                            docs.map((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              return DropdownMenuItem<Map<String, dynamic>>(
+                                value: {
+                                  "priceLabel": data['priceLabel'],
+                                  "price": data['price'],
+                                  "category": data['category'], // Radio
+                                },
+                                child: Text("${data['priceLabel']}"),
+                              );
+                            }).toList(),
+                        onChanged: (value) {
+                          selectedPrice = value;
+                        },
+                      );
+                    },
                   ),
+
                   const SizedBox(height: 16),
                   buildTextField(
                     controller: quantityController,
@@ -504,12 +488,11 @@ class DashboardView extends GetView<DashboardController> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  // Validate inputs before saving
-                  if (priceController.text.isEmpty ||
+                  if (selectedPrice == null ||
                       quantityController.text.isEmpty) {
                     Get.snackbar(
                       'Error',
-                      'Please fill in all fields',
+                      'Please select price and enter quantity',
                       backgroundColor: Colors.red,
                       colorText: Colors.white,
                       snackPosition: SnackPosition.TOP,
@@ -517,68 +500,31 @@ class DashboardView extends GetView<DashboardController> {
                     return;
                   }
 
-                  try {
-                    final priceInput = priceController.text.trim();
-                    final quantity = int.parse(quantityController.text);
+                  final quantity = int.parse(quantityController.text);
 
-                    // Validate price format (should contain a dash)
-                    // if (!priceInput.contains('-')) {
-                    //   Get.snackbar(
-                    //     'Error',
-                    //     'Price format should be like "42-M"',
-                    //     backgroundColor: Colors.red,
-                    //     colorText: Colors.white,
-                    //     snackPosition: SnackPosition.TOP,
-                    //   );
-                    //   return;
-                    // }
-
-                    // Extract numeric part for validation
-                    final priceParts = priceInput.split('-');
-                    // if (priceParts.length != 2 ||
-                    //     priceParts[0].isEmpty ||
-                    //     priceParts[1].isEmpty) {
-                    //   Get.snackbar(
-                    //     'Error',
-                    //     'Price format should be like "42-M"',
-                    //     backgroundColor: Colors.red,
-                    //     colorText: Colors.white,
-                    //     snackPosition: SnackPosition.TOP,
-                    //   );
-                    //   return;
-                    // }
-
-                    final numericPrice = double.parse(priceParts[0]);
-
-                    if (numericPrice <= 0 || quantity <= 0) {
-                      Get.snackbar(
-                        'Error',
-                        'Price and quantity must be greater than 0',
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                        snackPosition: SnackPosition.TOP,
-                      );
-                      return;
-                    }
-
-                    controller.addProduct({
-                      'price':
-                          priceInput, // Store the full price string (e.g., "42-M")
-                      'quantity': quantity,
-                      'type': 'instock',
-                      'dateAdded': DateTime.now().toIso8601String(),
-                    });
-                    Navigator.pop(context);
-                  } catch (e) {
+                  if (quantity <= 0) {
                     Get.snackbar(
                       'Error',
-                      'Please enter valid price format (e.g., 42-M) and quantity',
+                      'Quantity must be greater than 0',
                       backgroundColor: Colors.red,
                       colorText: Colors.white,
                       snackPosition: SnackPosition.TOP,
                     );
+                    return;
                   }
+
+                  controller.addProduct({
+                    'priceLabel': selectedPrice!['priceLabel'], // 5-M-42
+                    'price': selectedPrice!['price'], // 42
+                    'category': selectedPrice!['category'], // Radio
+                    'quantity': quantity,
+                    'type': 'instock',
+                    'dateAdded': DateTime.now().toIso8601String(),
+                  });
+
+                  Navigator.pop(context);
                 },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[600],
                   padding: const EdgeInsets.symmetric(
@@ -729,40 +675,6 @@ class DashboardView extends GetView<DashboardController> {
       maxLines: maxLines,
     );
   }
-
-  // void handleStoreSave(
-  //   BuildContext context,
-  //   TextEditingController nameController,
-  //   TextEditingController addressController,
-  //   TextEditingController districtController,
-  //   TextEditingController phoneController,
-  //   TextEditingController emailController,
-  // ) {
-  //   if (nameController.text.isEmpty ||
-  //       phoneController.text.isEmpty ||
-  //       addressController.text.isEmpty ||
-  //       districtController.text.isEmpty) {
-  //     Get.snackbar(
-  //       'Error',
-  //       'Please fill in all required fields.',
-  //       backgroundColor: Colors.red[400],
-  //       colorText: Colors.white,
-  //       snackPosition: SnackPosition.TOP,
-  //       margin: const EdgeInsets.all(16),
-  //     );
-  //     return;
-  //   }
-
-  //   controller.addStore({
-  //     'name': nameController.text,
-  //     'address': addressController.text,
-  //     'district': districtController.text,
-  //     'phone': phoneController.text,
-  //     'email': emailController.text,
-  //     'created_at': DateTime.now(),
-  //   });
-  //   Navigator.pop(context);
-  // }
 
   void handleStoreSave(
     BuildContext context,

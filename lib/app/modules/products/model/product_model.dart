@@ -6,6 +6,8 @@ class Product {
   final String type;
   final String? vehicleId; // Non-nullable
   final String? employeeId; // Non-nullable
+  final String? priceLabel;
+  final String? category;
 
   Product({
     required this.id,
@@ -13,6 +15,9 @@ class Product {
     required this.price,
     required this.dateAdded,
     required this.type,
+
+    this.priceLabel,
+    this.category,
     this.vehicleId,
     this.employeeId,
   });
@@ -25,17 +30,21 @@ class Product {
     'type': type,
     'vehicleId': vehicleId,
     'employeeId': employeeId,
+    'priceLabel': priceLabel,
+    'category': category,
   };
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
     id: json['id'] ?? '',
     quantity: (json['quantity'] ?? 0).toInt(),
-      price: json['price'], 
+    price: json['price'],
     dateAdded: DateTime.parse(
       json['dateAdded'] ?? DateTime.now().toIso8601String(),
     ),
     type: json['type'] ?? 'instock',
     vehicleId: json['vehicleId'] ?? '',
     employeeId: json['employeeId'] ?? '',
+    priceLabel: json['priceLabel'] ?? '',
+    category: json['category'] ?? '',
   );
 }

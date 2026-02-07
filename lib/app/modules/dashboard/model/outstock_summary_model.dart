@@ -37,6 +37,8 @@ class OutstockSummary {
   final int quantity;
   final String vehicleId;
   final String employeeId;
+   final String priceLabel;
+  final String category;
 
   OutstockSummary({
     required this.id,
@@ -45,6 +47,8 @@ class OutstockSummary {
     required this.quantity,
     required this.vehicleId,
     required this.employeeId,
+    required this.priceLabel,
+    required this.category,
   });
 
   factory OutstockSummary.fromJson(Map<String, dynamic> json) {
@@ -55,6 +59,8 @@ class OutstockSummary {
       quantity: (json['quantity'] as num?)?.toInt() ?? 0,
       vehicleId: json['vehicleId'] ?? '',
       employeeId: json['employeeId'] ?? '',
+      priceLabel: json['priceLabel']??'',
+      category: json['category']??"",
     );
   }
 }

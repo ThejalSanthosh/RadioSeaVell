@@ -7,38 +7,77 @@ import 'package:radio_sea_well/app/modules/vechiles/model/vechile_model.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  Future<void> addProduct(Product product) async {
-    try {
-      // Check if product with same price exists
-      QuerySnapshot existingProducts =
-          await _firestore
-              .collection('products')
-              .where('price', isEqualTo: product.price)
-              .where('type', isEqualTo: product.type)
-              .get();
+  // Future<void> addProduct(Product product) async {
+  //   try {
+  //     // Check if product with same price exists
+  //     QuerySnapshot existingProducts =
+  //         await _firestore
+  //             .collection('products')
+  //             .where('price', isEqualTo: product.price)
+  //             .where('type', isEqualTo: product.type)
+  //             .get();
 
-      if (existingProducts.docs.isNotEmpty) {
-        // Update existing product quantity
-        DocumentReference docRef = existingProducts.docs.first.reference;
-        int currentQuantity = existingProducts.docs.first.get('quantity');
-        await docRef.update({
-          'quantity': currentQuantity + product.quantity,
-          'dateAdded': DateTime.now().toIso8601String(),
-        });
-      } else {
-        // Create new product document
-        await _firestore.collection('products').add({
-          'quantity': product.quantity,
-          'price': product.price,
-          'type': product.type,
-          'dateAdded': product.dateAdded.toIso8601String(),
-        });
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to add product');
-      print('Error adding product: $e');
+  //     if (existingProducts.docs.isNotEmpty) {
+  //       // Update existing product quantity
+  //       DocumentReference docRef = existingProducts.docs.first.reference;
+  //       int currentQuantity = existingProducts.docs.first.get('quantity');
+  //       await docRef.update({
+  //         'quantity': currentQuantity + product.quantity,
+  //         'dateAdded': DateTime.now().toIso8601String(),
+  //       });
+  //     } else {
+  //       // Create new product document
+  //       await _firestore.collection('products').add({
+  //         'quantity': product.quantity,
+  //         'priceLabel':product.priceLabel,
+  //         'category':product.category,
+  //         'price': product.price,
+  //         'type': product.type,
+  //         'dateAdded': product.dateAdded.toIso8601String(),
+  //       });
+  //     }
+  //   } catch (e) {
+  //     Get.snackbar('Error', 'Failed to add product');
+  //     print('Error adding product: $e');
+  //   }
+  // }
+
+  Future<void> addProduct(Product product) async {
+  try {
+    QuerySnapshot existingProducts =
+        await _firestore
+            .collection('products')
+            .where('priceLabel', isEqualTo: product.priceLabel)
+            .where('category', isEqualTo: product.category)
+            .where('type', isEqualTo: product.type)
+            .get();
+
+    if (existingProducts.docs.isNotEmpty) {
+      // Update existing product quantity
+      DocumentReference docRef = existingProducts.docs.first.reference;
+      int currentQuantity = existingProducts.docs.first.get('quantity');
+
+      await docRef.update({
+        'quantity': currentQuantity + product.quantity,
+        'dateAdded': DateTime.now().toIso8601String(),
+      });
+    } else {
+      // Create new product document
+      await _firestore.collection('products').add({
+        'quantity': product.quantity,
+        'priceLabel': product.priceLabel, // ✅
+        'category': product.category,     // ✅
+        'price': product.price,           // display only
+        'type': product.type,
+        'dateAdded': product.dateAdded.toIso8601String(),
+      });
     }
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to add product');
+    print('Error adding product: $e');
   }
+}
+
 
   Future<void> addStore(Map<String, dynamic> storeData) {
     return _firestore.collection('stores').add(storeData);
