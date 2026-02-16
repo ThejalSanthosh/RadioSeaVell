@@ -94,18 +94,34 @@ final RxDouble totalUpi = 0.0.obs;
     }
     vehicleExpensesAmount.value = totalAmount;
   }
+  DateTime? _parseUpdatedAt(dynamic value) {
+  if (value == null) return null;
 
-  void calculateTransactionStats(List<DocumentSnapshot> transactions) {
+  if (value is Timestamp) {
+    return value.toDate();
+  }
+
+  if (value is String) {
+    return DateTime.tryParse(value);
+  }
+
+  return null;
+}
+
+void calculateTransactionStats(List<DocumentSnapshot> transactions) {
   int outstockSum = 0;
 
   double cashSum = 0.0;
   double upiSum = 0.0;
   double paidSum = 0.0;
 
+  // -------------------------------
+  // Totals
+  // -------------------------------
   for (var doc in transactions) {
     final data = doc.data() as Map<String, dynamic>;
 
-    // ✅ Outstock calculation (unchanged)
+    // ✅ Outstock quantity
     if (data['items'] is List) {
       for (var item in data['items']) {
         final qty = item['quantity'];
@@ -130,21 +146,26 @@ final RxDouble totalUpi = 0.0.obs;
   totalAmount.value = paidSum;
 
   // -------------------------------
-  // Latest credit per store (KEEP AS IS)
+  // ✅ Latest credit per store (FIXED)
   // -------------------------------
-  final Map<String, Map> latestByStore = {};
+  final Map<String, Map<String, dynamic>> latestByStore = {};
 
   for (var transaction in transactions) {
-    final data = transaction.data() as Map;
-    final storeId = data['storeId'] as String;
-    final updatedAt = DateTime.parse(data['UpdatedAt'] as String);
+    final data = transaction.data() as Map<String, dynamic>;
+    final storeId = data['storeId'] as String?;
+
+    if (storeId == null) continue;
+
+    final updatedAt = _parseUpdatedAt(data['UpdatedAt']);
+    if (updatedAt == null) continue;
 
     if (!latestByStore.containsKey(storeId)) {
       latestByStore[storeId] = data;
     } else {
       final existing = latestByStore[storeId]!;
-      final existingTime = DateTime.parse(existing['UpdatedAt'] as String);
-      if (updatedAt.isAfter(existingTime)) {
+      final existingTime = _parseUpdatedAt(existing['UpdatedAt']);
+
+      if (existingTime == null || updatedAt.isAfter(existingTime)) {
         latestByStore[storeId] = data;
       }
     }
@@ -152,7 +173,8 @@ final RxDouble totalUpi = 0.0.obs;
 
   totalCredit.value = latestByStore.values.fold(
     0.0,
-    (sum, data) => sum + ((data['balanceAmount'] as num?)?.toDouble() ?? 0.0),
+    (sum, data) =>
+        sum + ((data['balanceAmount'] as num?)?.toDouble() ?? 0.0),
   );
 }
 

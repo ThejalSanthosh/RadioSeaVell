@@ -1,11 +1,13 @@
 import 'package:get/get.dart';
 import 'package:radio_sea_well/app/modules/dashboard/bindings/instock_binding.dart';
 import 'package:radio_sea_well/app/modules/dashboard/bindings/outstock_binding.dart';
+import 'package:radio_sea_well/app/modules/dashboard/bindings/store_view_binding.dart';
 import 'package:radio_sea_well/app/modules/dashboard/bindings/update_historybinding.dart';
 import 'package:radio_sea_well/app/modules/dashboard/view/dashboard_screen.dart';
 import 'package:radio_sea_well/app/modules/dashboard/view/instock_screen.dart';
 import 'package:radio_sea_well/app/modules/dashboard/view/outstock_screen.dart';
 import 'package:radio_sea_well/app/modules/dashboard/view/piechart_salesreport_screen.dart';
+import 'package:radio_sea_well/app/modules/dashboard/view/store_view.dart';
 import 'package:radio_sea_well/app/modules/dashboard/view/transaction_screen.dart';
 import 'package:radio_sea_well/app/modules/dashboard/view/update_history_screen.dart';
 import 'package:radio_sea_well/app/modules/dashboard/view/vehcile_expense_screen.dart';
@@ -75,5 +77,12 @@ GetPage(
       page: () => VehicleExpenseScreen(),
       binding: VechileBinding()
     ),
+
+    GetPage(
+  name: Routes.STORES,
+  page: () => StoresView(), // 👈 View + Update stores
+  binding: StoreBinding(),
+),
+
   ];
 }

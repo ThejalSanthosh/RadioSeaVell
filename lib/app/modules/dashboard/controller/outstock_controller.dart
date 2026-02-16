@@ -12,6 +12,10 @@ class OutstockController extends GetxController {
   final districts = <String>[].obs;
   final filteredStores = <String>[].obs;
   final isLoading = true.obs;
+  final RxDouble totalAmount = 0.0.obs;
+  final RxDouble totalCash = 0.0.obs;
+  final RxDouble totalUpi = 0.0.obs;
+  final RxDouble totalCredit = 0.0.obs;
 
   @override
   void onInit() {
@@ -25,6 +29,62 @@ class OutstockController extends GetxController {
     loadDistricts();
     loadOutstockData();
   }
+
+//   void calculateTotals(List<OutstockModel> list) {
+//   double amount = 0;
+//   double cash = 0;
+//   double upi = 0;
+
+//   for (final item in list) {
+//     amount += item.totalAmount;
+
+//     // payment is already parsed in model
+//     cash += item.cashAmount;
+//     upi += item.upiAmount;
+//   }
+
+//   totalAmount.value = amount;
+//   totalCash.value = cash;
+//   totalUpi.value = upi;
+// }
+
+
+void calculateTotals(List<OutstockModel> list) {
+  double amount = 0;
+  double cash = 0;
+  double upi = 0;
+
+  // 🔹 For credit → keep latest per store
+  final Map<String, OutstockModel> latestByStore = {};
+
+  for (final item in list) {
+    amount += item.totalAmount;
+    cash += item.cashAmount;
+    upi += item.upiAmount;
+
+    final storeKey = item.storeName; // or storeId if you have it
+
+    if (!latestByStore.containsKey(storeKey)) {
+      latestByStore[storeKey] = item;
+    } else {
+      final existing = latestByStore[storeKey]!;
+      if (item.date.isAfter(existing.date)) {
+        latestByStore[storeKey] = item;
+      }
+    }
+  }
+
+  final credit = latestByStore.values.fold<double>(
+    0.0,
+    (sum, item) => sum + item.currentBalance,
+  );
+
+  totalAmount.value = amount;
+  totalCash.value = cash;
+  totalUpi.value = upi;
+  totalCredit.value = credit;
+}
+
 
   void loadDistricts() {
     FirebaseFirestore.instance.collection('stores').get().then((snapshot) {
@@ -143,21 +203,47 @@ class OutstockController extends GetxController {
     });
     
     filteredOutstockData.value = allResults;
+    calculateTotals(allResults); 
+
     isLoading.value = false;
   }
 
+  // void executeQuery(Query query) {
+  //   if (selectedStore.value != null && selectedStore.value != 'All') {
+  //     query = query.where('storeName', isEqualTo: selectedStore.value);
+  //   }
+  //   query = query.orderBy('timestamp', descending: true);
+  //   query.snapshots().listen((snapshot) {
+  //     filteredOutstockData.value = snapshot.docs
+  //         .map((doc) => OutstockModel.fromFirestore(doc))
+  //         .toList();
+          
+  //     isLoading.value = false;
+  //   });
+  // }
+
   void executeQuery(Query query) {
-    if (selectedStore.value != null && selectedStore.value != 'All') {
-      query = query.where('storeName', isEqualTo: selectedStore.value);
-    }
-    query = query.orderBy('timestamp', descending: true);
-    query.snapshots().listen((snapshot) {
-      filteredOutstockData.value = snapshot.docs
-          .map((doc) => OutstockModel.fromFirestore(doc))
-          .toList();
-      isLoading.value = false;
-    });
+  if (selectedStore.value != null && selectedStore.value != 'All') {
+    query = query.where('storeName', isEqualTo: selectedStore.value);
   }
+
+  query = query.orderBy('timestamp', descending: true);
+
+  query.snapshots().listen((snapshot) {
+    final List<OutstockModel> list = snapshot.docs
+        .map((doc) => OutstockModel.fromFirestore(doc))
+        .toList();
+
+    //  Update table data
+    filteredOutstockData.value = list;
+
+    //  Recalculate totals
+    calculateTotals(list);
+
+    isLoading.value = false;
+  });
+}
+
 
   // Helper method to split a list into chunks of specified size
   List<List<T>> _chunkList<T>(List<T> list, int chunkSize) {

@@ -58,7 +58,9 @@ class OutstockScreen extends GetView<OutstockController> {
                               children: [
                                 Text(
                                   controller.fromDate.value != null
-                                      ? DateFormat('dd/MM/yyyy').format(controller.fromDate.value!)
+                                      ? DateFormat(
+                                        'dd/MM/yyyy',
+                                      ).format(controller.fromDate.value!)
                                       : 'From Date',
                                   style: TextStyle(
                                     fontSize: 16,
@@ -92,7 +94,9 @@ class OutstockScreen extends GetView<OutstockController> {
                               children: [
                                 Text(
                                   controller.toDate.value != null
-                                      ? DateFormat('dd/MM/yyyy').format(controller.toDate.value!)
+                                      ? DateFormat(
+                                        'dd/MM/yyyy',
+                                      ).format(controller.toDate.value!)
                                       : 'To Date',
                                   style: TextStyle(
                                     fontSize: 16,
@@ -144,14 +148,15 @@ class OutstockScreen extends GetView<OutstockController> {
                             fillColor: backgroundColor,
                           ),
                           value: controller.selectedDistrict.value,
-                          items: controller.districts
-                              .map(
-                                (district) => DropdownMenuItem(
-                                  value: district,
-                                  child: Text(district),
-                                ),
-                              )
-                              .toList(),
+                          items:
+                              controller.districts
+                                  .map(
+                                    (district) => DropdownMenuItem(
+                                      value: district,
+                                      child: Text(district),
+                                    ),
+                                  )
+                                  .toList(),
                           onChanged: controller.onDistrictChanged,
                         );
                       }),
@@ -190,14 +195,15 @@ class OutstockScreen extends GetView<OutstockController> {
                             fillColor: backgroundColor,
                           ),
                           value: controller.selectedStore.value,
-                          items: controller.filteredStores
-                              .map(
-                                (store) => DropdownMenuItem(
-                                  value: store,
-                                  child: Text(store),
-                                ),
-                              )
-                              .toList(),
+                          items:
+                              controller.filteredStores
+                                  .map(
+                                    (store) => DropdownMenuItem(
+                                      value: store,
+                                      child: Text(store),
+                                    ),
+                                  )
+                                  .toList(),
                           onChanged: controller.onStoreChanged,
                         );
                       }),
@@ -207,6 +213,38 @@ class OutstockScreen extends GetView<OutstockController> {
               ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Obx(() {
+              return Row(
+                children: [
+                  _summaryCard(
+                    title: 'Total Amount',
+                    value: controller.totalAmount.value,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(width: 12),
+                  _summaryCard(
+                    title: 'Total Cash',
+                    value: controller.totalCash.value,
+                    color: Colors.green,
+                  ),
+                  const SizedBox(width: 12),
+                  _summaryCard(
+                    title: 'Total UPI',
+                    value: controller.totalUpi.value,
+                    color: Colors.purple,
+                  ),
+                  _summaryCard(
+            title: 'Total Credit',
+            value: controller.totalCredit.value,
+            color: Colors.red,
+          ),
+                ],
+              );
+            }),
+          ),
+
           Expanded(
             child: Obx(
               () => Stack(
@@ -222,6 +260,43 @@ class OutstockScreen extends GetView<OutstockController> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _summaryCard({
+    required String title,
+    required double value,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(color: color, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '₹${value.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

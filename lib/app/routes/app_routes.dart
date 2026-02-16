@@ -13,4 +13,6 @@ abstract class Routes {
 
   static const LOGTRACKING = '/logTracking';
   static const VEHICLEEXPENSES = '/vehicleExpenses';
+    static const STORES = '/stores';
+
 }

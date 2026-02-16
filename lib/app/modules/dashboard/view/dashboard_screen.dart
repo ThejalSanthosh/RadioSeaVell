@@ -95,56 +95,6 @@ class DashboardView extends GetView<DashboardController> {
     );
   }
 
-  // Widget buildFinancialSummary() {
-  //   return Container(
-  //     padding: const EdgeInsets.all(24),
-  //     decoration: BoxDecoration(
-  //       color: cardColor,
-  //       borderRadius: BorderRadius.circular(12),
-  //       boxShadow: [
-  //         BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5),
-  //       ],
-  //     ),
-  //     child: Column(
-  //       children: [
-  //         Row(
-  //           children: [
-  //             _summaryItem(
-  //               icon: Icons.account_balance_wallet,
-  //               label: 'Total',
-  //               value: controller.totalAmount,
-  //               color: Colors.blue,
-  //             ),
-  //             _summaryItem(
-  //               icon: Icons.money,
-  //               label: 'Cash',
-  //               value: controller.totalCash,
-  //               color: Colors.green,
-  //             ),
-  //           ],
-  //         ),
-  //         const SizedBox(height: 16),
-  //         Row(
-  //           children: [
-  //             _summaryItem(
-  //               icon: Icons.qr_code,
-  //               label: 'UPI',
-  //               value: controller.totalUpi,
-  //               color: Colors.deepPurple,
-  //             ),
-  //             _summaryItem(
-  //               icon: Icons.credit_card,
-  //               label: 'Credit',
-  //               value: controller.totalCredit,
-  //               color: Colors.red,
-  //             ),
-  //           ],
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
 
 Widget buildFinancialSummary() {
   return Container(
@@ -281,6 +231,17 @@ Widget buildFinancialSummary() {
             ),
             onTap: () => Get.toNamed('/transactions'),
           ),
+
+          StatsCard(
+  title: 'View / Update Stores',
+  value: controller.totalStores.value.toString(),
+  icon: Icons.store_mall_directory,
+  gradient: const LinearGradient(
+    colors: [Color(0xFF1ABC9C), Color(0xFF16A085)],
+  ),
+  onTap: () => Get.toNamed('/stores'), // 👈 your store list screen
+),
+
           StatsCard(
             title: 'Updated Logs',
             value: controller.totalErrors.value.toString(),
