@@ -210,6 +210,35 @@ class OutstockScreen extends GetView<OutstockController> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+
+Obx(() {
+  if (controller.vehicles.isEmpty) {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  return DropdownButtonFormField<String>(
+    dropdownColor: Colors.grey.shade300,
+    style: const TextStyle(color: Colors.black),
+    decoration: InputDecoration(
+      labelText: 'Select Vehicle',
+      labelStyle: TextStyle(color: primaryColor),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      filled: true,
+      fillColor: backgroundColor,
+    ),
+    value: controller.selectedVehicle.value,
+    items: controller.vehicles
+        .map((vehicle) => DropdownMenuItem(
+              value: vehicle,
+              child: Text(vehicle),
+            ))
+        .toList(),
+    onChanged: controller.onVehicleChanged,
+  );
+}),
               ],
             ),
           ),

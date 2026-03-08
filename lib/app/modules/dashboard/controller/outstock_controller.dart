@@ -16,7 +16,8 @@ class OutstockController extends GetxController {
   final RxDouble totalCash = 0.0.obs;
   final RxDouble totalUpi = 0.0.obs;
   final RxDouble totalCredit = 0.0.obs;
-
+final vehicles = <String>[].obs;
+final selectedVehicle = RxnString();
   @override
   void onInit() {
     super.onInit();
@@ -27,9 +28,33 @@ class OutstockController extends GetxController {
     fromDate.value = DateTime.now();
     toDate.value = DateTime.now();
     loadDistricts();
+    loadVehicles();
     loadOutstockData();
   }
+  void onVehicleChanged(String? vehicle) {
+  selectedVehicle.value = vehicle;
+  loadOutstockData();
+}
 
+void loadVehicles() {
+  FirebaseFirestore.instance.collection('vehicles').get().then((snapshot) {
+    Set<String> uniqueVehicles = {'All'};
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+
+      // ✅ Correct field from your DB
+      final plate = data['plateNumber'];
+
+      if (plate != null && plate.toString().trim().isNotEmpty) {
+        uniqueVehicles.add(plate.toString());
+      }
+    }
+
+    vehicles.value = uniqueVehicles.toList();
+    selectedVehicle.value = 'All';
+  });
+}
 //   void calculateTotals(List<OutstockModel> list) {
 //   double amount = 0;
 //   double cash = 0;
@@ -182,7 +207,11 @@ void calculateTotals(List<OutstockModel> list) {
       if (selectedStore.value != null && selectedStore.value != 'All') {
         query = query.where('storeName', isEqualTo: selectedStore.value);
       }
-      
+
+ if (selectedVehicle.value != null && selectedVehicle.value != 'All') {
+    query = query.where('vehicleName', isEqualTo: selectedVehicle.value);
+  }
+
       query = query.orderBy('timestamp', descending: true);
       
       QuerySnapshot snapshot = await query.get();
@@ -225,6 +254,9 @@ void calculateTotals(List<OutstockModel> list) {
   void executeQuery(Query query) {
   if (selectedStore.value != null && selectedStore.value != 'All') {
     query = query.where('storeName', isEqualTo: selectedStore.value);
+  }
+ if (selectedVehicle.value != null && selectedVehicle.value != 'All') {
+    query = query.where('vehicleName', isEqualTo: selectedVehicle.value);
   }
 
   query = query.orderBy('timestamp', descending: true);
