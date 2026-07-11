@@ -18,6 +18,27 @@ class OutstockScreen extends GetView<OutstockController> {
         title: const Text('Outstock Details'),
         backgroundColor: primaryColor,
         elevation: 0,
+        actions: [
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  controller.exportToExcelWeb();
+                },
+                icon: const Icon(Icons.download),
+                label: const Text("Sales Excel"),
+              ),
+
+              TextButton.icon(
+                onPressed: () {
+                  controller.exportCreditBalanceExcel();
+                },
+                icon: const Icon(Icons.download),
+                label: const Text("Credit Excel"),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -212,33 +233,36 @@ class OutstockScreen extends GetView<OutstockController> {
                 ),
                 const SizedBox(height: 16),
 
-Obx(() {
-  if (controller.vehicles.isEmpty) {
-    return const Center(child: CircularProgressIndicator());
-  }
+                Obx(() {
+                  if (controller.vehicles.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-  return DropdownButtonFormField<String>(
-    dropdownColor: Colors.grey.shade300,
-    style: const TextStyle(color: Colors.black),
-    decoration: InputDecoration(
-      labelText: 'Select Vehicle',
-      labelStyle: TextStyle(color: primaryColor),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      filled: true,
-      fillColor: backgroundColor,
-    ),
-    value: controller.selectedVehicle.value,
-    items: controller.vehicles
-        .map((vehicle) => DropdownMenuItem(
-              value: vehicle,
-              child: Text(vehicle),
-            ))
-        .toList(),
-    onChanged: controller.onVehicleChanged,
-  );
-}),
+                  return DropdownButtonFormField<String>(
+                    dropdownColor: Colors.grey.shade300,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: InputDecoration(
+                      labelText: 'Select Vehicle',
+                      labelStyle: TextStyle(color: primaryColor),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: backgroundColor,
+                    ),
+                    value: controller.selectedVehicle.value,
+                    items:
+                        controller.vehicles
+                            .map(
+                              (vehicle) => DropdownMenuItem(
+                                value: vehicle,
+                                child: Text(vehicle),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: controller.onVehicleChanged,
+                  );
+                }),
               ],
             ),
           ),
@@ -265,10 +289,10 @@ Obx(() {
                     color: Colors.purple,
                   ),
                   _summaryCard(
-            title: 'Total Credit',
-            value: controller.totalCredit.value,
-            color: Colors.red,
-          ),
+                    title: 'Total Credit',
+                    value: controller.totalCredit.value,
+                    color: Colors.red,
+                  ),
                 ],
               );
             }),

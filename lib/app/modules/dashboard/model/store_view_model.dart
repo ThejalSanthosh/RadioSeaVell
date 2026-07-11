@@ -9,7 +9,7 @@ class StoreModel {
   final String email;
   final double balanceAmount;
   final DateTime updatedAt;
-
+  final String englishName;
   StoreModel({
     required this.id,
     required this.name,
@@ -19,6 +19,7 @@ class StoreModel {
     required this.email,
     required this.balanceAmount,
     required this.updatedAt,
+    required this.englishName,
   });
 
   factory StoreModel.fromFirestore(DocumentSnapshot doc) {
@@ -32,9 +33,11 @@ class StoreModel {
       phone: data['phone'] ?? '',
       email: data['email'] ?? '',
       balanceAmount: (data['balanceAmount'] ?? 0).toDouble(),
-      updatedAt: data['UpdatedAt'] is Timestamp
-          ? (data['UpdatedAt'] as Timestamp).toDate()
-          : DateTime.now(),
+      updatedAt:
+          data['UpdatedAt'] is Timestamp
+              ? (data['UpdatedAt'] as Timestamp).toDate()
+              : DateTime.now(),
+      englishName: data['englishName'] ?? '',
     );
   }
 }

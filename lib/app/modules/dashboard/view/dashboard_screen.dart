@@ -95,59 +95,55 @@ class DashboardView extends GetView<DashboardController> {
     );
   }
 
-
-Widget buildFinancialSummary() {
-  return Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      color: cardColor,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.1),
-          blurRadius: 5,
-        ),
-      ],
-    ),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            _summaryItem(
-              icon: Icons.account_balance_wallet,
-              label: 'Total',
-              value: controller.totalAmount,
-              color: Colors.blue,
-            ),
-            _summaryItem(
-              icon: Icons.money,
-              label: 'Cash',
-              value: controller.totalCash,
-              color: Colors.green,
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            _summaryItem(
-              icon: Icons.qr_code,
-              label: 'UPI',
-              value: controller.totalUpi,
-              color: Colors.deepPurple,
-            ),
-            _summaryItem(
-              icon: Icons.credit_card,
-              label: 'Credit',
-              value: controller.totalCredit,
-              color: Colors.red,
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
+  Widget buildFinancialSummary() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _summaryItem(
+                icon: Icons.account_balance_wallet,
+                label: 'Total',
+                value: controller.totalAmount,
+                color: Colors.blue,
+              ),
+              _summaryItem(
+                icon: Icons.money,
+                label: 'Cash',
+                value: controller.totalCash,
+                color: Colors.green,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _summaryItem(
+                icon: Icons.qr_code,
+                label: 'UPI',
+                value: controller.totalUpi,
+                color: Colors.deepPurple,
+              ),
+              _summaryItem(
+                icon: Icons.credit_card,
+                label: 'Credit',
+                value: controller.totalCredit,
+                color: Colors.red,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _summaryItem({
     required IconData icon,
@@ -233,14 +229,14 @@ Widget buildFinancialSummary() {
           ),
 
           StatsCard(
-  title: 'View / Update Stores',
-  value: controller.totalStores.value.toString(),
-  icon: Icons.store_mall_directory,
-  gradient: const LinearGradient(
-    colors: [Color(0xFF1ABC9C), Color(0xFF16A085)],
-  ),
-  onTap: () => Get.toNamed('/stores'), // 👈 your store list screen
-),
+            title: 'View / Update Stores',
+            value: controller.totalStores.value.toString(),
+            icon: Icons.store_mall_directory,
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1ABC9C), Color(0xFF16A085)],
+            ),
+            onTap: () => Get.toNamed('/stores'), // 👈 your store list screen
+          ),
 
           StatsCard(
             title: 'Updated Logs',
@@ -505,12 +501,12 @@ Widget buildFinancialSummary() {
 
   void showAddStoreDialog(BuildContext context) {
     final nameController = TextEditingController();
+    final englishNameController = TextEditingController();
     final addressController = TextEditingController();
     final phoneController = TextEditingController();
     final emailController = TextEditingController();
     final districtController = TextEditingController();
     final creditBalanceController = TextEditingController();
-
     showDialog(
       context: context,
       builder:
@@ -530,6 +526,13 @@ Widget buildFinancialSummary() {
                     label: 'Store Name',
                     icon: Icons.store,
                   ),
+                  const SizedBox(height: 16),
+                  buildTextField(
+                    controller: englishNameController,
+                    label: 'English Name',
+                    icon: Icons.store,
+                  ),
+                  const SizedBox(height: 16),
                   const SizedBox(height: 16),
                   buildTextField(
                     controller: phoneController,
@@ -581,6 +584,8 @@ Widget buildFinancialSummary() {
                     () => handleStoreSave(
                       context,
                       nameController,
+                      englishNameController,
+
                       addressController,
                       districtController,
                       phoneController,
@@ -640,6 +645,7 @@ Widget buildFinancialSummary() {
   void handleStoreSave(
     BuildContext context,
     TextEditingController nameController,
+    TextEditingController englishNameController,
     TextEditingController addressController,
     TextEditingController districtController,
     TextEditingController phoneController,
@@ -647,6 +653,7 @@ Widget buildFinancialSummary() {
     TextEditingController creditBalanceController,
   ) {
     if (nameController.text.isEmpty ||
+        englishNameController.text.isEmpty ||
         phoneController.text.isEmpty ||
         addressController.text.isEmpty ||
         districtController.text.isEmpty) {
@@ -669,6 +676,7 @@ Widget buildFinancialSummary() {
 
     controller.addStore({
       'name': nameController.text,
+      'englishName': englishNameController.text,
       'address': addressController.text,
       'district': districtController.text,
       'phone': phoneController.text,

@@ -69,7 +69,9 @@ class StoresView extends GetView<StoreController> {
     final email = TextEditingController(text: store.email);
     final balance = TextEditingController(text: store.balanceAmount.toString());
     final reason = TextEditingController();
-
+final englishName = TextEditingController(
+  text: store.englishName,
+);
     showDialog(
       context: context,
       builder:
@@ -83,6 +85,7 @@ class StoresView extends GetView<StoreController> {
               child: Column(
                 children: [
                   _tf(name, 'Store Name'),
+                  _tf(englishName, 'English Store Name'),
                   _tf(phone, 'Phone'),
                   _tf(address, 'Address'),
                   _tf(district, 'Line'),
@@ -110,6 +113,7 @@ class StoresView extends GetView<StoreController> {
                 onPressed: () {
                   controller.updateStore(
                     store: store,
+                    englishName: englishName.text??"",
                     name: name.text,
                     address: address.text,
                     district: district.text,
