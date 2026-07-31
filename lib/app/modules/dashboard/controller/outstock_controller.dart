@@ -586,115 +586,387 @@ class OutstockController extends GetxController {
         });
   }
 
-  Future<void> exportCreditBalanceExcel() async {
-    try {
-      final excel = Excel.createExcel();
-      final Sheet sheet = excel['Sheet1'];
+  // Future<void> exportCreditBalanceExcel() async {
+  //   try {
+  //     final excel = Excel.createExcel();
+  //     final Sheet sheet = excel['Sheet1'];
 
-      // Header
+  //     // Header
+  //     sheet.appendRow([
+  //       TextCellValue('Line'),
+  //       TextCellValue('Store'),
+  //       TextCellValue('Last Sale Date'),
+  //       TextCellValue('Current Credit'),
+  //     ]);
+
+  //     final storesSnapshot =
+  //         await FirebaseFirestore.instance.collection('stores').get();
+
+  //     double totalCredit = 0;
+
+  //     for (final doc in storesSnapshot.docs) {
+  //       final data = doc.data();
+
+  //       final credit =
+  //           ((data['currentBalance'] ?? data['balanceAmount'] ?? 0) as num)
+  //               .toDouble();
+
+  //       // Skip stores with no credit
+  //       if (credit <= 0) continue;
+
+  //       totalCredit += credit;
+
+  //       final line = data['district']?.toString() ?? '';
+
+  //       final storeName = data['name']?.toString() ?? '';
+
+  //       String formattedDate = '';
+
+  //       final lastTransactionDate =
+  //           data['lastTransactionDate']?.toString() ?? '';
+
+  //       if (lastTransactionDate.isNotEmpty) {
+  //         try {
+  //           final date = DateTime.parse(lastTransactionDate);
+
+  //           formattedDate =
+  //               "${date.day.toString().padLeft(2, '0')}/"
+  //               "${date.month.toString().padLeft(2, '0')}/"
+  //               "${date.year}";
+  //         } catch (e) {
+  //           formattedDate = lastTransactionDate;
+  //         }
+  //       }
+  //       sheet.appendRow([
+  //         TextCellValue(line),
+  //         TextCellValue(storeName),
+  //         TextCellValue(formattedDate),
+  //         DoubleCellValue(credit),
+  //       ]);
+  //     }
+
+  //     // Empty row
+  //     sheet.appendRow([TextCellValue('')]);
+
+  //     // Total row
+  //     sheet.appendRow([
+  //       TextCellValue(''),
+  //       TextCellValue('TOTAL CREDIT'),
+  //       TextCellValue(''),
+  //       DoubleCellValue(totalCredit),
+  //     ]);
+
+  //     // Remove default empty sheet
+  //     try {
+  //       excel.delete('Sheet1');
+  //     } catch (_) {}
+
+  //     final bytes = excel.encode();
+
+  //     if (bytes == null) {
+  //       Get.snackbar("Error", "Failed to generate Excel");
+  //       return;
+  //     }
+
+  //     final Uint8List uint8List = Uint8List.fromList(bytes);
+
+  //     final blob = html.Blob([
+  //       uint8List,
+  //     ], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+  //     final url = html.Url.createObjectUrlFromBlob(blob);
+
+  //     html.AnchorElement(href: url)
+  //       ..setAttribute(
+  //         "download",
+  //         "Credit_Balance_Report_${DateTime.now().millisecondsSinceEpoch}.xlsx",
+  //       )
+  //       ..click();
+
+  //     html.Url.revokeObjectUrl(url);
+
+  //     Get.snackbar(
+  //       "Success",
+  //       "Credit Balance Report Downloaded",
+  //       snackPosition: SnackPosition.BOTTOM,
+  //     );
+  //   } catch (e, stackTrace) {
+  //     print("Credit Export Error: $e");
+  //     print(stackTrace);
+
+  //     Get.snackbar("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
+  //   }
+  // }
+
+
+Future<void> exportCreditBalanceExcel() async {
+  try {
+    final excel = Excel.createExcel();
+    final Sheet sheet = excel['Sheet1'];
+
+    // ===========================
+    // CURRENT DATE SALES REPORT
+    // ===========================
+
+    final salesData = filteredOutstockData.toList();
+
+    final Set<String> headerSet = {};
+    final Map<String, int> itemTotals = {};
+
+    for (final item in salesData) {
+      for (final subItem in item.items) {
+        final match = RegExp(r'\d+').firstMatch(subItem.priceLabel);
+
+        if (match == null) continue;
+
+        final header = match.group(0)!;
+
+        headerSet.add(header);
+
+        itemTotals[header] =
+            (itemTotals[header] ?? 0) + subItem.quantity;
+      }
+    }
+
+    final headers = headerSet.toList()
+      ..sort((a, b) =>
+          (int.tryParse(a) ?? 0).compareTo(int.tryParse(b) ?? 0));
+
+    final double excelTotalAmount = salesData.fold(
+      0.0,
+      (sum, item) => sum + item.totalAmount,
+    );
+
+    final double excelPaidAmount = salesData.fold(
+      0.0,
+      (sum, item) => sum + item.paidAmount,
+    );
+
+    final double excelPreviousCredit = salesData.fold(
+      0.0,
+      (sum, item) => sum + item.previousBalance,
+    );
+
+    final double excelCurrentCredit = salesData.fold(
+      0.0,
+      (sum, item) => sum + item.currentBalance,
+    );
+
+    final double excelCash = salesData.fold(
+      0.0,
+      (sum, item) => sum + item.cashAmount,
+    );
+
+    final double excelUpi = salesData.fold(
+      0.0,
+      (sum, item) => sum + item.upiAmount,
+    );
+
+    sheet.appendRow([
+      TextCellValue('CURRENT DATE SALES REPORT'),
+    ]);
+
+    sheet.appendRow([TextCellValue('')]);
+
+    sheet.appendRow([
+      TextCellValue('Date'),
+      TextCellValue('Store'),
+
+      ...headers.map((e) => TextCellValue(e)),
+
+      TextCellValue('Total Amount'),
+      TextCellValue('Paid Amount'),
+      TextCellValue('Previous Credit'),
+      TextCellValue('Current Credit'),
+      TextCellValue('Cash'),
+      TextCellValue('UPI'),
+    ]);
+
+    for (final item in salesData) {
+      final Map<String, int> qtyMap = {};
+
+      for (final subItem in item.items) {
+        final match = RegExp(r'\d+').firstMatch(subItem.priceLabel);
+
+        if (match == null) continue;
+
+        final key = match.group(0)!;
+
+        qtyMap[key] = (qtyMap[key] ?? 0) + subItem.quantity;
+      }
+
       sheet.appendRow([
-        TextCellValue('Line'),
-        TextCellValue('Store'),
-        TextCellValue('Last Sale Date'),
-        TextCellValue('Current Credit'),
+        TextCellValue(
+            "${item.date.day}/${item.date.month}/${item.date.year}"),
+        TextCellValue(item.storeName),
+
+        ...headers.map(
+          (header) => IntCellValue(qtyMap[header] ?? 0),
+        ),
+
+        DoubleCellValue(item.totalAmount),
+        DoubleCellValue(item.paidAmount),
+        DoubleCellValue(item.previousBalance),
+        DoubleCellValue(item.currentBalance),
+        DoubleCellValue(item.cashAmount),
+        DoubleCellValue(item.upiAmount),
       ]);
+    }
 
-      final storesSnapshot =
-          await FirebaseFirestore.instance.collection('stores').get();
+    sheet.appendRow([TextCellValue('')]);
 
-      double totalCredit = 0;
+    sheet.appendRow([
+      TextCellValue('TOTALS'),
+      TextCellValue(''),
 
-      for (final doc in storesSnapshot.docs) {
-        final data = doc.data();
+      ...headers.map(
+        (header) => IntCellValue(itemTotals[header] ?? 0),
+      ),
 
-        final credit =
-            ((data['currentBalance'] ?? data['balanceAmount'] ?? 0) as num)
-                .toDouble();
+      DoubleCellValue(excelTotalAmount),
+      DoubleCellValue(excelPaidAmount),
+      DoubleCellValue(excelPreviousCredit),
+      DoubleCellValue(excelCurrentCredit),
+      DoubleCellValue(excelCash),
+      DoubleCellValue(excelUpi),
+    ]);
 
-        // Skip stores with no credit
-        if (credit <= 0) continue;
+    sheet.appendRow([TextCellValue('')]);
+    sheet.appendRow([TextCellValue('')]);
 
-        totalCredit += credit;
+    sheet.appendRow([
+      TextCellValue('CREDIT BALANCE REPORT'),
+    ]);
 
-        final line = data['district']?.toString() ?? '';
+    sheet.appendRow([TextCellValue('')]);
 
-        final storeName = data['name']?.toString() ?? '';
+    sheet.appendRow([
+      TextCellValue('Line'),
+      TextCellValue('Store'),
+      TextCellValue('Last Sale Date'),
+      TextCellValue('Current Credit'),
+    ]);
 
-        String formattedDate = '';
+    final storesSnapshot =
+        await FirebaseFirestore.instance.collection('stores').get();
 
-        final lastTransactionDate =
-            data['lastTransactionDate']?.toString() ?? '';
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> storeDocs =
+        storesSnapshot.docs;
 
-        if (lastTransactionDate.isNotEmpty) {
-          try {
-            final date = DateTime.parse(lastTransactionDate);
+    // Filter by selected District
+    if (selectedDistrict.value != null &&
+        selectedDistrict.value != 'All') {
+      storeDocs = storeDocs.where((doc) {
+        return doc.data()['district'] == selectedDistrict.value;
+      }).toList();
+    }
 
-            formattedDate =
-                "${date.day.toString().padLeft(2, '0')}/"
-                "${date.month.toString().padLeft(2, '0')}/"
-                "${date.year}";
-          } catch (e) {
-            formattedDate = lastTransactionDate;
-          }
+    // Filter by selected Store
+    if (selectedStore.value != null &&
+        selectedStore.value != 'All') {
+      storeDocs = storeDocs.where((doc) {
+        return doc.data()['name'] == selectedStore.value;
+      }).toList();
+    }
+
+    double totalCredit = 0;
+
+    for (final doc in storeDocs) {
+      final data = doc.data();
+            final credit =
+          ((data['currentBalance'] ?? data['balanceAmount'] ?? 0) as num)
+              .toDouble();
+
+      // Skip stores without credit
+      if (credit <= 0) continue;
+
+      totalCredit += credit;
+
+      final line = data['district']?.toString() ?? '';
+      final storeName = data['name']?.toString() ?? '';
+
+      String formattedDate = '';
+
+      final lastTransactionDate =
+          data['lastTransactionDate']?.toString() ?? '';
+
+      if (lastTransactionDate.isNotEmpty) {
+        try {
+          final date = DateTime.parse(lastTransactionDate);
+
+          formattedDate =
+              "${date.day.toString().padLeft(2, '0')}/"
+              "${date.month.toString().padLeft(2, '0')}/"
+              "${date.year}";
+        } catch (_) {
+          formattedDate = lastTransactionDate;
         }
-        sheet.appendRow([
-          TextCellValue(line),
-          TextCellValue(storeName),
-          TextCellValue(formattedDate),
-          DoubleCellValue(credit),
-        ]);
       }
 
-      // Empty row
-      sheet.appendRow([TextCellValue('')]);
-
-      // Total row
       sheet.appendRow([
-        TextCellValue(''),
-        TextCellValue('TOTAL CREDIT'),
-        TextCellValue(''),
-        DoubleCellValue(totalCredit),
+        TextCellValue(line),
+        TextCellValue(storeName),
+        TextCellValue(formattedDate),
+        DoubleCellValue(credit),
       ]);
+    }
 
-      // Remove default empty sheet
-      try {
-        excel.delete('Sheet1');
-      } catch (_) {}
+    // Empty Row
+    sheet.appendRow([TextCellValue('')]);
 
-      final bytes = excel.encode();
+    // Total Credit Row
+    sheet.appendRow([
+      TextCellValue(''),
+      TextCellValue('TOTAL CREDIT'),
+      TextCellValue(''),
+      DoubleCellValue(totalCredit),
+    ]);
 
-      if (bytes == null) {
-        Get.snackbar("Error", "Failed to generate Excel");
-        return;
-      }
+    print("Rows Created: ${sheet.maxRows}");
 
-      final Uint8List uint8List = Uint8List.fromList(bytes);
+    final bytes = excel.encode();
 
-      final blob = html.Blob([
-        uint8List,
-      ], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-
-      final url = html.Url.createObjectUrlFromBlob(blob);
-
-      html.AnchorElement(href: url)
-        ..setAttribute(
-          "download",
-          "Credit_Balance_Report_${DateTime.now().millisecondsSinceEpoch}.xlsx",
-        )
-        ..click();
-
-      html.Url.revokeObjectUrl(url);
-
+    if (bytes == null) {
       Get.snackbar(
-        "Success",
-        "Credit Balance Report Downloaded",
+        "Error",
+        "Failed to generate Excel",
         snackPosition: SnackPosition.BOTTOM,
       );
-    } catch (e, stackTrace) {
-      print("Credit Export Error: $e");
-      print(stackTrace);
-
-      Get.snackbar("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
+      return;
     }
+
+    final Uint8List uint8List = Uint8List.fromList(bytes);
+
+    final blob = html.Blob(
+      [uint8List],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    html.AnchorElement(href: url)
+      ..setAttribute(
+        "download",
+        "Credit_Balance_Report_${DateTime.now().millisecondsSinceEpoch}.xlsx",
+      )
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+
+    Get.snackbar(
+      "Success",
+      "Credit Balance Report Downloaded",
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } catch (e, stackTrace) {
+    print("Credit Export Error: $e");
+    print(stackTrace);
+
+    Get.snackbar(
+      "Error",
+      e.toString(),
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
+}
 }

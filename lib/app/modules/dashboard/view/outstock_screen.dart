@@ -21,20 +21,22 @@ class OutstockScreen extends GetView<OutstockController> {
         actions: [
           Row(
             children: [
-              TextButton.icon(
-                onPressed: () {
-                  controller.exportToExcelWeb();
-                },
-                icon: const Icon(Icons.download),
-                label: const Text("Sales Excel"),
-              ),
-
-              TextButton.icon(
-                onPressed: () {
-                  controller.exportCreditBalanceExcel();
-                },
-                icon: const Icon(Icons.download),
-                label: const Text("Credit Excel"),
+              // TextButton.icon(
+              //   onPressed: () {
+              //     controller.exportToExcelWeb();
+              //   },
+              //   icon: const Icon(Icons.download),
+              //   label: const Text("Sales Excel"),
+              // ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextButton.icon(
+                  onPressed: () {
+                    controller.exportCreditBalanceExcel();
+                  },
+                  icon: const Icon(Icons.download),
+                  label: const Text("Sales Excel"),
+                ),
               ),
             ],
           ),

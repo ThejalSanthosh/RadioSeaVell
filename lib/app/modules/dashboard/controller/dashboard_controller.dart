@@ -27,6 +27,12 @@ final RxDouble totalUpi = 0.0.obs;
   var totalVehicleExpenses = 0.obs;
   var vehicleExpensesAmount = 0.0.obs;
 
+  final districts = <String>[].obs;
+  final filteredStores = <String>[].obs;
+
+  final selectedDistrict = RxnString();
+  // final selectedStore = RxnString();
+  final RxBool isLoadingTransactions = false.obs;
   @override
   Future<void> onInit() async {
     super.onInit();
@@ -34,8 +40,128 @@ final RxDouble totalUpi = 0.0.obs;
     loadStores();
     // await seedPriceMaster(priceMasterRadio);
     // await seedPriceMaster(priceMasterSavi);
+     selectedDistrict.value = null;
+    selectedStore.value = null;
+
+    loadDistricts();
   }
 
+
+  void loadDistricts() {
+    FirebaseFirestore.instance.collection('stores').get().then((snapshot) {
+      districts.value =
+          snapshot.docs
+              .map((doc) => doc['district'] as String)
+              .toSet()
+              .toList();
+    });
+  }
+
+  void onDistrictChanged(String? district) {
+    selectedDistrict.value = district;
+    updateFilteredStores();
+    storeTransactions.clear();
+  }
+
+  void onStoreChanged(String? store) {
+    selectedStore.value = store;
+
+    if (store != null) {
+      loadStoreTransactions();
+    } else {
+      storeTransactions.clear();
+    }
+  }
+
+  void updateFilteredStores() {
+    if (selectedDistrict.value == null) {
+      filteredStores.clear();
+      selectedStore.value = null;
+      return;
+    }
+
+    FirebaseFirestore.instance
+        .collection('stores')
+        .where('district', isEqualTo: selectedDistrict.value)
+        .get()
+        .then((snapshot) {
+          filteredStores.value =
+              snapshot.docs.map((e) => e['name'].toString()).toList();
+
+          selectedStore.value = null;
+        });
+  }
+
+
+Future<void> loadStoreTransactions() async {
+  if (selectedDistrict.value == null || selectedStore.value == null) {
+    storeTransactions.clear();
+    update();
+    return;
+  }
+
+  isLoadingTransactions.value = true;
+
+  try {
+    print("======================================");
+    print("Loading Transactions");
+    print("Selected District : ${selectedDistrict.value}");
+    print("Selected Store    : ${selectedStore.value}");
+
+    // Find the selected store
+    final storeSnapshot = await FirebaseFirestore.instance
+        .collection('stores')
+        .where('district', isEqualTo: selectedDistrict.value)
+        .where('name', isEqualTo: selectedStore.value)
+        .limit(1)
+        .get();
+
+    if (storeSnapshot.docs.isEmpty) {
+      print("Store not found.");
+      storeTransactions.clear();
+      update();
+      return;
+    }
+
+    final String storeId = storeSnapshot.docs.first.id;
+
+    print("Selected Store ID : $storeId");
+
+    // Load transactions
+    final transactionSnapshot = await FirebaseFirestore.instance
+        .collection('transactions')
+        .where('storeId', isEqualTo: storeId)
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    print("Transactions Found : ${transactionSnapshot.docs.length}");
+
+    storeTransactions.value = transactionSnapshot.docs
+        .map((doc) => TransactionModel.fromFirestore(doc))
+        .toList();
+
+    print("Loaded ${storeTransactions.length} transactions.");
+    print("======================================");
+
+    update();
+  } catch (e, stack) {
+    print("ERROR : $e");
+    print(stack);
+
+    storeTransactions.clear();
+
+    Get.snackbar(
+      'Error',
+      'Failed to load transactions',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  } finally {
+    isLoadingTransactions.value = false;
+    update();
+  }
+}
   Future<void> addStore(Map<String, dynamic> storeData) async {
     try {
       await firebaseService.addStore(storeData);
@@ -320,31 +446,31 @@ void calculateTransactionStats(List<DocumentSnapshot> transactions) {
     return quantity * price;
   }
 
-  void loadStoreTransactions() async {
-    if (selectedStore.value == null || selectedStore.value!.isEmpty) return;
+  // void loadStoreTransactions() async {
+  //   if (selectedStore.value == null || selectedStore.value!.isEmpty) return;
 
-    try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance
-              .collection('transactions')
-              .where('storeName', isEqualTo: selectedStore.value)
-              .orderBy('timestamp', descending: true)
-              .get();
+  //   try {
+  //     QuerySnapshot snapshot =
+  //         await FirebaseFirestore.instance
+  //             .collection('transactions')
+  //             .where('storeName', isEqualTo: selectedStore.value)
+  //             .orderBy('timestamp', descending: true)
+  //             .get();
 
-      storeTransactions.value =
-          snapshot.docs
-              .map((doc) => TransactionModel.fromFirestore(doc))
-              .toList();
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load transactions: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    } finally {}
-  }
+  //     storeTransactions.value =
+  //         snapshot.docs
+  //             .map((doc) => TransactionModel.fromFirestore(doc))
+  //             .toList();
+  //   } catch (e) {
+  //     Get.snackbar(
+  //       'Error',
+  //       'Failed to load transactions: $e',
+  //       snackPosition: SnackPosition.BOTTOM,
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   } finally {}
+  // }
 
   // Update transaction method
   // Update transaction method with proper error handling
@@ -387,88 +513,250 @@ Future<void> deleteTransaction(String transactionId) async {
   final firestore = FirebaseFirestore.instance;
 
   try {
-    await firestore.runTransaction((trx) async {
-      final txRef = firestore.collection('transactions').doc(transactionId);
-      final txSnap = await trx.get(txRef);
+    print("========== DELETE START ==========");
 
-      if (!txSnap.exists) {
-        throw Exception('Transaction not found');
+    // --------------------------------------------------
+    // 1. Load Transaction
+    // --------------------------------------------------
+    final txRef = firestore.collection('transactions').doc(transactionId);
+    final txSnap = await txRef.get();
+
+    if (!txSnap.exists) {
+      throw Exception("Transaction not found");
+    }
+
+    final data = txSnap.data()!;
+
+    final String vehicleId = data['vehicleId'];
+    final String employeeId = data['employeeId'];
+    final String storeId = data['storeId'];
+
+    final double previousBalance =
+        (data['previousBalance'] as num?)?.toDouble() ?? 0.0;
+
+    final List<dynamic> items = data['items'] ?? [];
+
+    print("Transaction : $transactionId");
+    print("Vehicle     : $vehicleId");
+    print("Employee    : $employeeId");
+    print("Store       : $storeId");
+    print("Items       : ${items.length}");
+
+    // --------------------------------------------------
+    // 2. Create Batch
+    // --------------------------------------------------
+    final batch = firestore.batch();
+
+    // --------------------------------------------------
+    // 3. Restore Vehicle Stock
+    // --------------------------------------------------
+    for (final item in items) {
+      final String priceLabel = item['priceLabel'].toString();
+      final int quantity =
+          (item['quantity'] as num?)?.toInt() ?? 0;
+
+      final qs = await firestore
+          .collection('outstocks')
+          .where('vehicleId', isEqualTo: vehicleId)
+          .where('employeeId', isEqualTo: employeeId)
+          .where('priceLabel', isEqualTo: priceLabel)
+          .limit(1)
+          .get();
+
+      if (qs.docs.isNotEmpty) {
+        print("Updating Outstock : $priceLabel");
+
+        batch.update(qs.docs.first.reference, {
+          'quantity': FieldValue.increment(quantity),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
+      } else {
+        print("Creating Outstock : $priceLabel");
+
+        final newRef = firestore.collection('outstocks').doc();
+
+        batch.set(newRef, {
+          'vehicleId': vehicleId,
+          'employeeId': employeeId,
+          'priceLabel': priceLabel,
+          'quantity': quantity,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
       }
+    }
 
-      final data = txSnap.data() as Map<String, dynamic>;
+    // --------------------------------------------------
+    // 4. Restore Store Balance
+    // --------------------------------------------------
+    final storeRef = firestore.collection('stores').doc(storeId);
+    final storeSnap = await storeRef.get();
 
-      final String vehicleId = data['vehicleId'];
-      final String employeeId = data['employeeId'];
-      final String storeId = data['storeId'];
+    if (storeSnap.exists) {
+      print("Updating Store Balance");
 
-      final double previousBalance =
-          (data['previousBalance'] as num?)?.toDouble() ?? 0.0;
-
-      final List items = data['items'] ?? [];
-
-      // 🔁 1️⃣ RESTORE VEHICLE STOCK
-      for (final item in items) {
-        final String priceLabel = item['priceLabel'];
-        final int quantity = item['quantity'];
-
-        // ⚠️ Query must be OUTSIDE transaction → get refs first
-        final qs = await firestore
-            .collection('outstocks')
-            .where('vehicleId', isEqualTo: vehicleId)
-            .where('employeeId', isEqualTo: employeeId)
-            .where('priceLabel', isEqualTo: priceLabel)
-            .limit(1)
-            .get();
-
-        if (qs.docs.isNotEmpty) {
-          trx.update(qs.docs.first.reference, {
-            'quantity': FieldValue.increment(quantity),
-            'lastUpdated': FieldValue.serverTimestamp(),
-          });
-        } else {
-          final newRef = firestore.collection('outstocks').doc();
-          trx.set(newRef, {
-            'vehicleId': vehicleId,
-            'employeeId': employeeId,
-            'priceLabel': priceLabel,
-            'quantity': quantity,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-        }
-      }
-
-      // 🔁 2️⃣ RESTORE STORE CREDIT
-      final storeRef = firestore.collection('stores').doc(storeId);
-      trx.update(storeRef, {
+      batch.update(storeRef, {
         'balanceAmount': previousBalance,
         'lastUpdated': FieldValue.serverTimestamp(),
       });
+    } else {
+      print("Store not found. Skipping balance update.");
+    }
 
-      // ❌ 3️⃣ DELETE TRANSACTION
-      trx.delete(txRef);
-    });
+    // --------------------------------------------------
+    // 5. Delete Transaction
+    // --------------------------------------------------
+    print("Deleting Transaction");
 
-    // ✅ 4️⃣ UPDATE UI IMMEDIATELY
+    batch.delete(txRef);
+
+    // --------------------------------------------------
+    // 6. Commit Batch
+    // --------------------------------------------------
+    await batch.commit();
+
+    print("========== DELETE SUCCESS ==========");
+
+    // --------------------------------------------------
+    // 7. Update UI
+    // --------------------------------------------------
     storeTransactions.removeWhere((t) => t.id == transactionId);
 
     Get.snackbar(
       'Success',
-      'Transaction deleted and vehicle stock restored',
+      'Transaction deleted successfully.',
       backgroundColor: Colors.green,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
     );
 
-  } catch (e) {
+    update();
+
+  } on FirebaseException catch (e, stack) {
+    debugPrint("Firebase Code : ${e.code}");
+    debugPrint("Firebase Msg  : ${e.message}");
+    debugPrintStack(stackTrace: stack);
+
+    Get.snackbar(
+      'Firebase Error',
+      '${e.code}\n${e.message}',
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } catch (e, stack) {
+    debugPrint("DELETE ERROR");
+    debugPrint(e.toString());
+    debugPrintStack(stackTrace: stack);
+
     Get.snackbar(
       'Error',
-      'Delete failed: $e',
+      e.toString(),
       backgroundColor: Colors.red,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
     );
   }
 }
+
+// Future<void> deleteTransaction(String transactionId) async {
+//   final firestore = FirebaseFirestore.instance;
+
+//   try {
+//     await firestore.runTransaction((trx) async {
+//       final txRef = firestore.collection('transactions').doc(transactionId);
+//       final txSnap = await trx.get(txRef);
+
+//       if (!txSnap.exists) {
+//         throw Exception('Transaction not found');
+//       }
+
+//       final data = txSnap.data() as Map<String, dynamic>;
+
+//       final String vehicleId = data['vehicleId'];
+//       final String employeeId = data['employeeId'];
+//       final String storeId = data['storeId'];
+
+//       final double previousBalance =
+//           (data['previousBalance'] as num?)?.toDouble() ?? 0.0;
+
+//       final List items = data['items'] ?? [];
+
+//       // 🔁 1️⃣ RESTORE VEHICLE STOCK
+//       for (final item in items) {
+//         final String priceLabel = item['priceLabel'];
+//         final int quantity = item['quantity'];
+
+//         // ⚠️ Query must be OUTSIDE transaction → get refs first
+//         final qs = await firestore
+//             .collection('outstocks')
+//             .where('vehicleId', isEqualTo: vehicleId)
+//             .where('employeeId', isEqualTo: employeeId)
+//             .where('priceLabel', isEqualTo: priceLabel)
+//             .limit(1)
+//             .get();
+
+//         if (qs.docs.isNotEmpty) {
+//           trx.update(qs.docs.first.reference, {
+//             'quantity': FieldValue.increment(quantity),
+//             'lastUpdated': FieldValue.serverTimestamp(),
+//           });
+//         } else {
+//           final newRef = firestore.collection('outstocks').doc();
+//           trx.set(newRef, {
+//             'vehicleId': vehicleId,
+//             'employeeId': employeeId,
+//             'priceLabel': priceLabel,
+//             'quantity': quantity,
+//             'createdAt': FieldValue.serverTimestamp(),
+//           });
+//         }
+//       }
+
+//       // 🔁 2️⃣ RESTORE STORE CREDIT
+//       final storeRef = firestore.collection('stores').doc(storeId);
+//       trx.update(storeRef, {
+//         'balanceAmount': previousBalance,
+//         'lastUpdated': FieldValue.serverTimestamp(),
+//       });
+
+//       // ❌ 3️⃣ DELETE TRANSACTION
+//       trx.delete(txRef);
+//     });
+
+//     // ✅ 4️⃣ UPDATE UI IMMEDIATELY
+//     storeTransactions.removeWhere((t) => t.id == transactionId);
+
+//     Get.snackbar(
+//       'Success',
+//       'Transaction deleted and vehicle stock restored',
+//       backgroundColor: Colors.green,
+//       colorText: Colors.white,
+//       snackPosition: SnackPosition.BOTTOM,
+//     );
+
+//   }  on FirebaseException catch (e, stack) {
+//   debugPrint("Code: ${e.code}");
+//   debugPrint("Message: ${e.message}");
+//   debugPrintStack(stackTrace: stack);
+
+//   Get.snackbar(
+//     "Error",
+//     "${e.code}\n${e.message}",
+//     backgroundColor: Colors.red,
+//     colorText: Colors.white,
+//   );
+// } catch (e, stack) {
+//   debugPrint(e.toString());
+//   debugPrintStack(stackTrace: stack);
+
+//   Get.snackbar(
+//     "Error",
+//     e.toString(),
+//     backgroundColor: Colors.red,
+//     colorText: Colors.white,
+//   );
+// }
+// }
 
 
 //   Future<void> deleteTransaction(String transactionId) async {
